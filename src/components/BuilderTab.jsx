@@ -1,6 +1,8 @@
 import { buildUTMUrl } from "../utils/urlBuilder";
 import { validateUrl } from "../utils/validation";
 import { useLocalStorage } from "../hooks/useLocalStorage";
+import { useState, useEffect } from "react";
+import { flushSync } from "react-dom";
 
 function BuilderTab({ onSave }) {
   // 행 데이터 상태 관리 (localStorage 자동 저장)
@@ -39,6 +41,25 @@ function BuilderTab({ onSave }) {
 
   // 편집 가능한 필드 목록 (키보드 네비게이션용)
   const fields = ['baseUrl', 'source', 'medium', 'campaign', 'term', 'content'];
+
+  // 행 선택 모드 상태 (rowIndex가 선택되면 해당 행 전체 선택)
+  const [selectedRowIndex, setSelectedRowIndex] = useState(null);
+
+  // 복사된 행 데이터
+  const [copiedRow, setCopiedRow] = useState(null);
+
+  // 마지막으로 포커스된 필드 (행 선택 모드 진입 전)
+  const [lastFocusedField, setLastFocusedField] = useState('baseUrl');
+
+  // 행이 선택되었을 때 해당 행에 포커스
+  useEffect(() => {
+    if (selectedRowIndex !== null) {
+      const rowElement = document.querySelector(`tr[data-row-index="${selectedRowIndex}"]`);
+      if (rowElement) {
+        rowElement.focus();
+      }
+    }
+  }, [selectedRowIndex]);
 
   // 입력 필드 값 변경 핸들러
   const handleChange = (id, field, value) => {
@@ -155,25 +176,157 @@ function BuilderTab({ onSave }) {
 
   // 키보드 네비게이션: 특정 셀로 포커스 이동
   const focusCell = (rowIndex, field) => {
-    if (rowIndex < 0 || rowIndex >= rows.length) return;
+    if (rowIndex < 0) return;
 
     const selector = `input[data-row-index="${rowIndex}"][data-field="${field}"]`;
     const nextInput = document.querySelector(selector);
+
     if (nextInput) {
       nextInput.focus();
-      // 텍스트 전체 선택 (선택적)
       nextInput.select();
     }
   };
 
-  // 키보드 이벤트 핸들러 (방향키, Enter)
+  // 행 선택 모드용 키보드 핸들러
+  const handleRowSelectionKeyDown = (e, rowIndex) => {
+    // ArrowUp: 위 행 선택
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (rowIndex > 0) {
+        setSelectedRowIndex(rowIndex - 1);
+      }
+    }
+    // ArrowDown: 아래 행 선택
+    else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (rowIndex < rows.length - 1) {
+        setSelectedRowIndex(rowIndex + 1);
+      }
+    }
+    // Delete 또는 Backspace: 행 삭제
+    else if (e.key === 'Delete' || e.key === 'Backspace') {
+      e.preventDefault();
+      if (rows.length > 1) {
+        deleteRow(rows[rowIndex].id);
+        // 삭제 후 선택 해제 또는 이전 행 선택
+        if (rowIndex > 0) {
+          setSelectedRowIndex(rowIndex - 1);
+        } else if (rows.length > 1) {
+          setSelectedRowIndex(0);
+        } else {
+          setSelectedRowIndex(null);
+        }
+      } else {
+        alert('최소 1개의 행은 필요합니다!');
+      }
+    }
+    // Cmd/Ctrl + C: 행 복사
+    else if ((e.metaKey || e.ctrlKey) && e.key === 'c') {
+      e.preventDefault();
+      setCopiedRow({ ...rows[rowIndex] });
+      alert('행이 복사되었습니다!');
+    }
+    // Cmd/Ctrl + V: 행 붙여넣기
+    else if ((e.metaKey || e.ctrlKey) && e.key === 'v') {
+      e.preventDefault();
+      if (copiedRow) {
+        const newRow = {
+          ...copiedRow,
+          id: Date.now(),
+          selected: false,
+        };
+        setRows([...rows.slice(0, rowIndex + 1), newRow, ...rows.slice(rowIndex + 1)]);
+        setSelectedRowIndex(rowIndex + 1);
+        alert('행이 붙여넣어졌습니다!');
+      }
+    }
+    // Enter 또는 다른 키: 행 선택 모드 해제 및 마지막 포커스된 필드로 포커스
+    else if (e.key === 'Enter' || e.key.length === 1) {
+      e.preventDefault();
+      setSelectedRowIndex(null);
+      focusCell(rowIndex, lastFocusedField);
+    }
+    // ESC: 행 선택 모드 해제
+    else if (e.key === 'Escape') {
+      e.preventDefault();
+      setSelectedRowIndex(null);
+    }
+  };
+
+  // 키보드 이벤트 핸들러 (방향키, Enter, ESC, Delete, Cmd/Ctrl+C/V)
   const handleKeyDown = (e, rowIndex, field) => {
+    // Chrome 확장 프로그램 충돌 방지
+    if (!e || !e.target) return;
+
     const input = e.target;
     const cursorAtStart = input.selectionStart === 0;
     const cursorAtEnd = input.selectionStart === input.value.length;
 
-    // ArrowDown 또는 Enter: 아래 행으로 이동
-    if (e.key === 'ArrowDown' || e.key === 'Enter') {
+    // 현재 필드 기억 (행 선택 모드 진입 전)
+    setLastFocusedField(field);
+
+    // ESC: 행 전체 선택 모드로 전환
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      setSelectedRowIndex(rowIndex);
+      input.blur(); // 포커스 해제
+      return;
+    }
+
+    // Cmd/Ctrl + C: 행 복사
+    if ((e.metaKey || e.ctrlKey) && e.key === 'c') {
+      e.preventDefault();
+      setCopiedRow({ ...rows[rowIndex] });
+      alert('행이 복사되었습니다!');
+      return;
+    }
+
+    // Cmd/Ctrl + V: 행 붙여넣기
+    if ((e.metaKey || e.ctrlKey) && e.key === 'v') {
+      e.preventDefault();
+      if (copiedRow) {
+        const newRow = {
+          ...copiedRow,
+          id: Date.now(),
+          selected: false,
+        };
+        setRows([...rows.slice(0, rowIndex + 1), newRow, ...rows.slice(rowIndex + 1)]);
+        alert('행이 붙여넣어졌습니다!');
+      }
+      return;
+    }
+
+    // Enter: 아래 행으로 이동 (마지막 행이면 새 행 추가)
+    if (e.key === 'Enter') {
+      e.preventDefault();
+
+      // 마지막 행인 경우 새 행 추가
+      if (rowIndex === rows.length - 1) {
+        // flushSync로 동기적으로 상태 업데이트 후 포커스
+        flushSync(() => {
+          const newRow = {
+            id: Date.now(),
+            baseUrl: "",
+            source: "",
+            medium: "",
+            campaign: "",
+            term: "",
+            content: "",
+            selected: false,
+          };
+          setRows((prevRows) => [...prevRows, newRow]);
+        });
+
+        // DOM 업데이트를 기다린 후 포커스
+        requestAnimationFrame(() => {
+          focusCell(rowIndex + 1, field);
+        });
+      } else {
+        focusCell(rowIndex + 1, field);
+      }
+    }
+    // ArrowDown: 아래 행으로 이동
+    else if (e.key === 'ArrowDown') {
       e.preventDefault();
       focusCell(rowIndex + 1, field);
     }
@@ -280,7 +433,10 @@ function BuilderTab({ onSave }) {
               return (
                 <tr
                   key={row.id}
-                  className="hover:bg-[#1a2642]"
+                  data-row-index={index}
+                  tabIndex={selectedRowIndex === index ? 0 : -1}
+                  onKeyDown={(e) => selectedRowIndex === index && handleRowSelectionKeyDown(e, index)}
+                  className={`hover:bg-[#1a2642] ${selectedRowIndex === index ? 'bg-blue-900 ring-2 ring-blue-500' : ''}`}
                 >
                   <td className="px-3 py-2 text-center border-r border-b border-gray-700">
                     <input
@@ -382,8 +538,8 @@ function BuilderTab({ onSave }) {
                       className="w-full bg-transparent text-gray-300 px-2 py-1 focus:bg-[#1a2642] focus:outline-none text-sm"
                     />
                   </td>
-                  <td className="px-2 py-1 border-r border-b border-gray-700">
-                    <div className="text-gray-300 text-sm max-w-sm overflow-x-auto whitespace-nowrap">
+                  <td className="px-2 py-1 border-r border-b border-gray-700 bg-[#0f1626]">
+                    <div className={`text-sm max-w-sm overflow-x-auto whitespace-nowrap ${generatedUrl ? 'text-blue-400' : 'text-gray-500 italic'}`}>
                       {generatedUrl || "필수 필드 입력"}
                     </div>
                   </td>
