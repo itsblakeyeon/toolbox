@@ -30,9 +30,7 @@ function App() {
   // 코멘트 업데이트
   const handleUpdateComment = (id, comment) => {
     setSavedItems(
-      savedItems.map((item) =>
-        item.id === id ? { ...item, comment } : item
-      )
+      savedItems.map((item) => (item.id === id ? { ...item, comment } : item))
     );
   };
 

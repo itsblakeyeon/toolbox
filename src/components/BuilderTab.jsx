@@ -1,8 +1,12 @@
 import { buildUTMUrl } from "../utils/urlBuilder";
 import { validateUrl } from "../utils/validation";
+import { createEmptyRow } from "../utils/rowFactory";
 import { useLocalStorage } from "../hooks/useLocalStorage";
+import { useRowClipboard } from "../hooks/useRowClipboard";
 import { useState, useEffect } from "react";
 import { flushSync } from "react-dom";
+import UTMTableInput from "./UTMTableInput";
+import BuilderTableHeader from "./BuilderTableHeader";
 
 function BuilderTab({ onSave }) {
   // 행 데이터 상태 관리 (localStorage 자동 저장)
@@ -45,11 +49,14 @@ function BuilderTab({ onSave }) {
   // 행 선택 모드 상태 (rowIndex가 선택되면 해당 행 전체 선택)
   const [selectedRowIndex, setSelectedRowIndex] = useState(null);
 
-  // 복사된 행 데이터
-  const [copiedRow, setCopiedRow] = useState(null);
+  // 행 복사/붙여넣기 훅
+  const { copyRow, pasteRow } = useRowClipboard();
 
   // 마지막으로 포커스된 필드 (행 선택 모드 진입 전)
   const [lastFocusedField, setLastFocusedField] = useState('baseUrl');
+
+  // 한글 입력 조합 중 여부 (IME composition)
+  const [isComposing, setIsComposing] = useState(false);
 
   // 행이 선택되었을 때 해당 행에 포커스
   useEffect(() => {
@@ -70,16 +77,7 @@ function BuilderTab({ onSave }) {
 
   // 행 추가
   const addRow = () => {
-    const newRow = {
-      id: Date.now(),
-      baseUrl: "",
-      source: "",
-      medium: "",
-      campaign: "",
-      term: "",
-      content: "",
-      selected: false,
-    };
+    const newRow = createEmptyRow();
     setRows([...rows, newRow]);
   };
 
@@ -94,18 +92,7 @@ function BuilderTab({ onSave }) {
 
   // 모든 필드 초기화
   const handleReset = () => {
-    setRows([
-      {
-        id: Date.now(),
-        baseUrl: "",
-        source: "",
-        medium: "",
-        campaign: "",
-        term: "",
-        content: "",
-        selected: false,
-      },
-    ]);
+    setRows([createEmptyRow()]);
   };
 
   // 체크박스 토글
@@ -189,6 +176,9 @@ function BuilderTab({ onSave }) {
 
   // 행 선택 모드용 키보드 핸들러
   const handleRowSelectionKeyDown = (e, rowIndex) => {
+    // Chrome 확장 프로그램 충돌 방지
+    if (!e || !e.key) return;
+
     // ArrowUp: 위 행 선택
     if (e.key === 'ArrowUp') {
       e.preventDefault();
@@ -223,20 +213,17 @@ function BuilderTab({ onSave }) {
     // Cmd/Ctrl + C: 행 복사
     else if ((e.metaKey || e.ctrlKey) && e.key === 'c') {
       e.preventDefault();
-      setCopiedRow({ ...rows[rowIndex] });
-      alert('행이 복사되었습니다!');
+      if (copyRow(rows[rowIndex])) {
+        alert('행이 복사되었습니다!');
+      }
     }
     // Cmd/Ctrl + V: 행 붙여넣기
     else if ((e.metaKey || e.ctrlKey) && e.key === 'v') {
       e.preventDefault();
-      if (copiedRow) {
-        const newRow = {
-          ...copiedRow,
-          id: Date.now(),
-          selected: false,
-        };
-        setRows([...rows.slice(0, rowIndex + 1), newRow, ...rows.slice(rowIndex + 1)]);
-        setSelectedRowIndex(rowIndex + 1);
+      const result = pasteRow(rows, rowIndex);
+      if (result.success) {
+        setRows(result.newRows);
+        setSelectedRowIndex(result.insertedIndex);
         alert('행이 붙여넣어졌습니다!');
       }
     }
@@ -253,17 +240,23 @@ function BuilderTab({ onSave }) {
     }
   };
 
+  // input 필드 포커스 핸들러 (행 선택 모드 해제)
+  const handleInputFocus = (field) => {
+    setSelectedRowIndex(null);
+    setLastFocusedField(field);
+  };
+
   // 키보드 이벤트 핸들러 (방향키, Enter, ESC, Delete, Cmd/Ctrl+C/V)
   const handleKeyDown = (e, rowIndex, field) => {
     // Chrome 확장 프로그램 충돌 방지
     if (!e || !e.target) return;
 
+    // 한글 조합 중에는 키보드 네비게이션 무시
+    if (isComposing) return;
+
     const input = e.target;
     const cursorAtStart = input.selectionStart === 0;
     const cursorAtEnd = input.selectionStart === input.value.length;
-
-    // 현재 필드 기억 (행 선택 모드 진입 전)
-    setLastFocusedField(field);
 
     // ESC: 행 전체 선택 모드로 전환
     if (e.key === 'Escape') {
@@ -276,21 +269,18 @@ function BuilderTab({ onSave }) {
     // Cmd/Ctrl + C: 행 복사
     if ((e.metaKey || e.ctrlKey) && e.key === 'c') {
       e.preventDefault();
-      setCopiedRow({ ...rows[rowIndex] });
-      alert('행이 복사되었습니다!');
+      if (copyRow(rows[rowIndex])) {
+        alert('행이 복사되었습니다!');
+      }
       return;
     }
 
     // Cmd/Ctrl + V: 행 붙여넣기
     if ((e.metaKey || e.ctrlKey) && e.key === 'v') {
       e.preventDefault();
-      if (copiedRow) {
-        const newRow = {
-          ...copiedRow,
-          id: Date.now(),
-          selected: false,
-        };
-        setRows([...rows.slice(0, rowIndex + 1), newRow, ...rows.slice(rowIndex + 1)]);
+      const result = pasteRow(rows, rowIndex);
+      if (result.success) {
+        setRows(result.newRows);
         alert('행이 붙여넣어졌습니다!');
       }
       return;
@@ -304,16 +294,7 @@ function BuilderTab({ onSave }) {
       if (rowIndex === rows.length - 1) {
         // flushSync로 동기적으로 상태 업데이트 후 포커스
         flushSync(() => {
-          const newRow = {
-            id: Date.now(),
-            baseUrl: "",
-            source: "",
-            medium: "",
-            campaign: "",
-            term: "",
-            content: "",
-            selected: false,
-          };
+          const newRow = createEmptyRow();
           setRows((prevRows) => [...prevRows, newRow]);
         });
 
@@ -386,45 +367,10 @@ function BuilderTab({ onSave }) {
       {/* 테이블 형식 */}
       <div className="overflow-x-auto border border-gray-700 rounded-lg">
         <table className="w-full bg-[#16213e]">
-          <thead className="bg-[#1a2642]">
-            <tr>
-              <th className="px-3 py-2 text-center text-gray-300 text-xs font-semibold border-r border-b border-gray-700">
-                <input
-                  type="checkbox"
-                  onChange={toggleSelectAll}
-                  checked={rows.length > 0 && rows.every((row) => row.selected)}
-                  className="w-4 h-4 cursor-pointer"
-                />
-              </th>
-              <th className="px-3 py-2 text-center text-gray-300 text-xs font-semibold border-r border-b border-gray-700">
-                #
-              </th>
-              <th className="px-3 py-2 text-left text-gray-300 text-xs font-semibold border-r border-b border-gray-700">
-                Base URL
-              </th>
-              <th className="px-3 py-2 text-left text-gray-300 text-xs font-semibold border-r border-b border-gray-700">
-                Source
-              </th>
-              <th className="px-3 py-2 text-left text-gray-300 text-xs font-semibold border-r border-b border-gray-700">
-                Medium
-              </th>
-              <th className="px-3 py-2 text-left text-gray-300 text-xs font-semibold border-r border-b border-gray-700">
-                Campaign
-              </th>
-              <th className="px-3 py-2 text-left text-gray-300 text-xs font-semibold border-r border-b border-gray-700">
-                Term
-              </th>
-              <th className="px-3 py-2 text-left text-gray-300 text-xs font-semibold border-r border-b border-gray-700">
-                Content
-              </th>
-              <th className="px-3 py-2 text-left text-gray-300 text-xs font-semibold border-r border-b border-gray-700">
-                생성된 URL
-              </th>
-              <th className="px-3 py-2 text-center text-gray-300 text-xs font-semibold border-b border-gray-700">
-                액션
-              </th>
-            </tr>
-          </thead>
+          <BuilderTableHeader
+            allSelected={rows.length > 0 && rows.every((row) => row.selected)}
+            onToggleSelectAll={toggleSelectAll}
+          />
           <tbody>
             {rows.map((row, index) => {
               const generatedUrl = buildUTMUrl(row);
@@ -450,17 +396,17 @@ function BuilderTab({ onSave }) {
                     {index + 1}
                   </td>
                   <td className="px-2 py-1 border-r border-b border-gray-700">
-                    <input
-                      type="text"
+                    <UTMTableInput
                       value={row.baseUrl}
-                      onChange={(e) =>
-                        handleChange(row.id, "baseUrl", e.target.value)
-                      }
-                      onKeyDown={(e) => handleKeyDown(e, index, "baseUrl")}
-                      data-row-index={index}
-                      data-field="baseUrl"
+                      field="baseUrl"
+                      rowId={row.id}
+                      rowIndex={index}
                       placeholder="https://example.com"
-                      className="w-full bg-transparent text-gray-300 px-2 py-1 focus:bg-[#1a2642] focus:outline-none text-sm"
+                      onChange={handleChange}
+                      onFocus={handleInputFocus}
+                      onKeyDown={handleKeyDown}
+                      onCompositionStart={() => setIsComposing(true)}
+                      onCompositionEnd={() => setIsComposing(false)}
                     />
                     {!urlValidation.valid && row.baseUrl && (
                       <div className="text-red-400 text-xs mt-1">
@@ -469,73 +415,73 @@ function BuilderTab({ onSave }) {
                     )}
                   </td>
                   <td className="px-2 py-1 border-r border-b border-gray-700">
-                    <input
-                      type="text"
+                    <UTMTableInput
                       value={row.source}
-                      onChange={(e) =>
-                        handleChange(row.id, "source", e.target.value)
-                      }
-                      onKeyDown={(e) => handleKeyDown(e, index, "source")}
-                      data-row-index={index}
-                      data-field="source"
+                      field="source"
+                      rowId={row.id}
+                      rowIndex={index}
                       placeholder="google"
-                      className="w-full bg-transparent text-gray-300 px-2 py-1 focus:bg-[#1a2642] focus:outline-none text-sm"
+                      onChange={handleChange}
+                      onFocus={handleInputFocus}
+                      onKeyDown={handleKeyDown}
+                      onCompositionStart={() => setIsComposing(true)}
+                      onCompositionEnd={() => setIsComposing(false)}
                     />
                   </td>
                   <td className="px-2 py-1 border-r border-b border-gray-700">
-                    <input
-                      type="text"
+                    <UTMTableInput
                       value={row.medium}
-                      onChange={(e) =>
-                        handleChange(row.id, "medium", e.target.value)
-                      }
-                      onKeyDown={(e) => handleKeyDown(e, index, "medium")}
-                      data-row-index={index}
-                      data-field="medium"
+                      field="medium"
+                      rowId={row.id}
+                      rowIndex={index}
                       placeholder="cpc"
-                      className="w-full bg-transparent text-gray-300 px-2 py-1 focus:bg-[#1a2642] focus:outline-none text-sm"
+                      onChange={handleChange}
+                      onFocus={handleInputFocus}
+                      onKeyDown={handleKeyDown}
+                      onCompositionStart={() => setIsComposing(true)}
+                      onCompositionEnd={() => setIsComposing(false)}
                     />
                   </td>
                   <td className="px-2 py-1 border-r border-b border-gray-700">
-                    <input
-                      type="text"
+                    <UTMTableInput
                       value={row.campaign}
-                      onChange={(e) =>
-                        handleChange(row.id, "campaign", e.target.value)
-                      }
-                      onKeyDown={(e) => handleKeyDown(e, index, "campaign")}
-                      data-row-index={index}
-                      data-field="campaign"
+                      field="campaign"
+                      rowId={row.id}
+                      rowIndex={index}
                       placeholder="spring_sale"
-                      className="w-full bg-transparent text-gray-300 px-2 py-1 focus:bg-[#1a2642] focus:outline-none text-sm"
+                      onChange={handleChange}
+                      onFocus={handleInputFocus}
+                      onKeyDown={handleKeyDown}
+                      onCompositionStart={() => setIsComposing(true)}
+                      onCompositionEnd={() => setIsComposing(false)}
                     />
                   </td>
                   <td className="px-2 py-1 border-r border-b border-gray-700">
-                    <input
-                      type="text"
+                    <UTMTableInput
                       value={row.term}
-                      onChange={(e) =>
-                        handleChange(row.id, "term", e.target.value)
-                      }
-                      onKeyDown={(e) => handleKeyDown(e, index, "term")}
-                      data-row-index={index}
-                      data-field="term"
+                      field="term"
+                      rowId={row.id}
+                      rowIndex={index}
                       placeholder="running shoes"
-                      className="w-full bg-transparent text-gray-300 px-2 py-1 focus:bg-[#1a2642] focus:outline-none text-sm"
+                      onChange={handleChange}
+                      onFocus={handleInputFocus}
+                      onKeyDown={handleKeyDown}
+                      onCompositionStart={() => setIsComposing(true)}
+                      onCompositionEnd={() => setIsComposing(false)}
                     />
                   </td>
                   <td className="px-2 py-1 border-r border-b border-gray-700">
-                    <input
-                      type="text"
+                    <UTMTableInput
                       value={row.content}
-                      onChange={(e) =>
-                        handleChange(row.id, "content", e.target.value)
-                      }
-                      onKeyDown={(e) => handleKeyDown(e, index, "content")}
-                      data-row-index={index}
-                      data-field="content"
+                      field="content"
+                      rowId={row.id}
+                      rowIndex={index}
                       placeholder="banner_ad"
-                      className="w-full bg-transparent text-gray-300 px-2 py-1 focus:bg-[#1a2642] focus:outline-none text-sm"
+                      onChange={handleChange}
+                      onFocus={handleInputFocus}
+                      onKeyDown={handleKeyDown}
+                      onCompositionStart={() => setIsComposing(true)}
+                      onCompositionEnd={() => setIsComposing(false)}
                     />
                   </td>
                   <td className="px-2 py-1 border-r border-b border-gray-700 bg-[#0f1626]">
