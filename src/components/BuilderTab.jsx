@@ -37,6 +37,9 @@ function BuilderTab({ onSave }) {
     },
   ]);
 
+  // 편집 가능한 필드 목록 (키보드 네비게이션용)
+  const fields = ['baseUrl', 'source', 'medium', 'campaign', 'term', 'content'];
+
   // 입력 필드 값 변경 핸들러
   const handleChange = (id, field, value) => {
     setRows((prevRows) =>
@@ -150,6 +153,53 @@ function BuilderTab({ onSave }) {
     }
   };
 
+  // 키보드 네비게이션: 특정 셀로 포커스 이동
+  const focusCell = (rowIndex, field) => {
+    if (rowIndex < 0 || rowIndex >= rows.length) return;
+
+    const selector = `input[data-row-index="${rowIndex}"][data-field="${field}"]`;
+    const nextInput = document.querySelector(selector);
+    if (nextInput) {
+      nextInput.focus();
+      // 텍스트 전체 선택 (선택적)
+      nextInput.select();
+    }
+  };
+
+  // 키보드 이벤트 핸들러 (방향키, Enter)
+  const handleKeyDown = (e, rowIndex, field) => {
+    const input = e.target;
+    const cursorAtStart = input.selectionStart === 0;
+    const cursorAtEnd = input.selectionStart === input.value.length;
+
+    // ArrowDown 또는 Enter: 아래 행으로 이동
+    if (e.key === 'ArrowDown' || e.key === 'Enter') {
+      e.preventDefault();
+      focusCell(rowIndex + 1, field);
+    }
+    // ArrowUp: 위 행으로 이동
+    else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      focusCell(rowIndex - 1, field);
+    }
+    // ArrowRight: 오른쪽 열로 이동 (커서가 끝에 있을 때만)
+    else if (e.key === 'ArrowRight' && cursorAtEnd) {
+      e.preventDefault();
+      const currentFieldIndex = fields.indexOf(field);
+      if (currentFieldIndex < fields.length - 1) {
+        focusCell(rowIndex, fields[currentFieldIndex + 1]);
+      }
+    }
+    // ArrowLeft: 왼쪽 열로 이동 (커서가 처음에 있을 때만)
+    else if (e.key === 'ArrowLeft' && cursorAtStart) {
+      e.preventDefault();
+      const currentFieldIndex = fields.indexOf(field);
+      if (currentFieldIndex > 0) {
+        focusCell(rowIndex, fields[currentFieldIndex - 1]);
+      }
+    }
+  };
+
   return (
     <div className="max-w-full mx-auto p-6">
       {/* 행 추가 버튼 */}
@@ -250,6 +300,9 @@ function BuilderTab({ onSave }) {
                       onChange={(e) =>
                         handleChange(row.id, "baseUrl", e.target.value)
                       }
+                      onKeyDown={(e) => handleKeyDown(e, index, "baseUrl")}
+                      data-row-index={index}
+                      data-field="baseUrl"
                       placeholder="https://example.com"
                       className="w-full bg-transparent text-gray-300 px-2 py-1 focus:bg-[#1a2642] focus:outline-none text-sm"
                     />
@@ -266,6 +319,9 @@ function BuilderTab({ onSave }) {
                       onChange={(e) =>
                         handleChange(row.id, "source", e.target.value)
                       }
+                      onKeyDown={(e) => handleKeyDown(e, index, "source")}
+                      data-row-index={index}
+                      data-field="source"
                       placeholder="google"
                       className="w-full bg-transparent text-gray-300 px-2 py-1 focus:bg-[#1a2642] focus:outline-none text-sm"
                     />
@@ -277,6 +333,9 @@ function BuilderTab({ onSave }) {
                       onChange={(e) =>
                         handleChange(row.id, "medium", e.target.value)
                       }
+                      onKeyDown={(e) => handleKeyDown(e, index, "medium")}
+                      data-row-index={index}
+                      data-field="medium"
                       placeholder="cpc"
                       className="w-full bg-transparent text-gray-300 px-2 py-1 focus:bg-[#1a2642] focus:outline-none text-sm"
                     />
@@ -288,6 +347,9 @@ function BuilderTab({ onSave }) {
                       onChange={(e) =>
                         handleChange(row.id, "campaign", e.target.value)
                       }
+                      onKeyDown={(e) => handleKeyDown(e, index, "campaign")}
+                      data-row-index={index}
+                      data-field="campaign"
                       placeholder="spring_sale"
                       className="w-full bg-transparent text-gray-300 px-2 py-1 focus:bg-[#1a2642] focus:outline-none text-sm"
                     />
@@ -299,6 +361,9 @@ function BuilderTab({ onSave }) {
                       onChange={(e) =>
                         handleChange(row.id, "term", e.target.value)
                       }
+                      onKeyDown={(e) => handleKeyDown(e, index, "term")}
+                      data-row-index={index}
+                      data-field="term"
                       placeholder="running shoes"
                       className="w-full bg-transparent text-gray-300 px-2 py-1 focus:bg-[#1a2642] focus:outline-none text-sm"
                     />
@@ -310,6 +375,9 @@ function BuilderTab({ onSave }) {
                       onChange={(e) =>
                         handleChange(row.id, "content", e.target.value)
                       }
+                      onKeyDown={(e) => handleKeyDown(e, index, "content")}
+                      data-row-index={index}
+                      data-field="content"
                       placeholder="banner_ad"
                       className="w-full bg-transparent text-gray-300 px-2 py-1 focus:bg-[#1a2642] focus:outline-none text-sm"
                     />

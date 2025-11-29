@@ -316,20 +316,27 @@ Phase 1을 완료하면 다음을 이해하게 됩니다:
 - [x] Phase 3: localStorage 지속성 ✅
 - [x] Phase 4: 저장 기능 ✅
 - [ ] Phase 5: CSV 기능 (제외)
+- [x] Phase 6: 키보드 네비게이션 ✅
 
 ---
 
-## 🚀 다음 구현 과제
+## 📚 Phase 6: 키보드 네비게이션 ✅
 
-### 키보드 네비게이션 (Google Sheets/Excel 스타일)
+### 🔹 Step 6-1: 키보드 네비게이션 구현 ✅
 
 **목표**: 방향키로 셀 간 이동하기
 
-**구현 방법**:
-1. 모든 input 필드에 `data-row-index`와 `data-field` 속성 추가
-2. `onKeyDown` 핸들러로 방향키 감지 (ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Enter)
-3. `focusCell(rowIndex, field)` 함수로 다음 셀에 포커스 이동
-4. 커서 위치 확인하여 텍스트 편집 중일 때는 방향키 동작하지 않도록 처리
+**배운 내용**:
+- onKeyDown 이벤트 핸들러
+- DOM 쿼리 선택자 (data 속성 활용)
+- 커서 위치 확인 (selectionStart, selectionEnd)
+- 테이블 경계 처리
+
+**구현 완료**:
+1. 모든 input 필드에 `data-row-index`와 `data-field` 속성 추가 ✅
+2. `onKeyDown` 핸들러로 방향키 감지 (ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Enter) ✅
+3. `focusCell(rowIndex, field)` 함수로 다음 셀에 포커스 이동 ✅
+4. 커서 위치 확인하여 텍스트 편집 중일 때는 방향키 동작하지 않도록 처리 ✅
 
 **구현 예시**:
 ```javascript
@@ -371,11 +378,17 @@ const focusCell = (rowIndex, field) => {
 ```
 
 **필요한 작업**:
-- [ ] BuilderTab.jsx의 모든 input에 data 속성 추가
-- [ ] handleKeyDown 함수 구현
-- [ ] focusCell 함수 구현
-- [ ] 커서 위치 체크 로직 추가
-- [ ] 테이블 경계 처리 (첫 행/마지막 행, 첫 열/마지막 열)
+- [x] BuilderTab.jsx의 모든 input에 data 속성 추가
+- [x] handleKeyDown 함수 구현
+- [x] focusCell 함수 구현
+- [x] 커서 위치 체크 로직 추가
+- [x] 테이블 경계 처리 (첫 행/마지막 행, 첫 열/마지막 열)
+
+**키보드 네비게이션 사용법**:
+- ⬆️ ArrowUp: 같은 열의 위 행으로 이동
+- ⬇️ ArrowDown / Enter: 같은 열의 아래 행으로 이동
+- ⬅️ ArrowLeft (커서가 맨 앞): 같은 행의 왼쪽 열로 이동
+- ➡️ ArrowRight (커서가 맨 뒤): 같은 행의 오른쪽 열로 이동
 
 ---
 
