@@ -235,47 +235,67 @@ Phase 1을 완료하면 다음을 이해하게 됩니다:
 
 ---
 
-## 📚 Phase 4: 저장 기능 추가
+## 📚 Phase 4: 저장 기능 추가 ✅
 
-### 🔹 Step 4-1: 체크박스 선택
+### 🔹 Step 4-1: 체크박스 선택 ✅
 **목표**: 특정 행만 선택해서 저장하기
 
-**배울 내용**:
+**배운 내용**:
 - checkbox input 다루기
 - 배열 내 특정 요소 업데이트
 - map으로 조건부 수정
+- 전체 선택/해제 기능 구현
+
+**구현 완료**:
+- [x] 각 행에 체크박스 추가
+- [x] 개별 선택 토글 기능
+- [x] 전체 선택/해제 버튼
+- [x] 선택된 항목 저장 기능
 
 ---
 
-### 🔹 Step 4-2: 저장됨 탭 만들기
+### 🔹 Step 4-2: 저장됨 탭 만들기 ✅
 **목표**: 탭 전환과 저장된 항목 표시
 
-**배울 내용**:
+**배운 내용**:
 - 조건부 렌더링으로 탭 구현
 - 타임스탬프 다루기
 - Date 객체와 포맷팅
+- 인라인 편집 UI 패턴
+
+**구현 완료**:
+- [x] Builder/Saved 탭 전환 UI (App.jsx)
+- [x] SavedTab 컴포넌트 생성
+- [x] 캠페인명, 저장 시간, UTM 파라미터 표시
+- [x] 인라인 코멘트 편집 (클릭 → 수정 → 저장/취소)
+- [x] 개별 복사/삭제, 전체 삭제 기능
+- [x] localStorage 자동 동기화
 
 ---
 
-## 📚 Phase 5: CSV 기능
+### 🔹 Step 4-3: Google Sheets 스타일 UI ✅
+**목표**: 테이블을 더욱 깔끔하게 만들기
 
-### 🔹 Step 5-1: CSV 다운로드
-**목표**: 데이터를 CSV 파일로 내보내기
+**배운 내용**:
+- 투명한 input 필드와 grid 레이아웃
+- focus 상태 스타일링
+- 긴 텍스트 처리 (overflow, whitespace)
 
-**배울 내용**:
-- Blob 객체
-- 동적 파일 다운로드
-- CSV 형식 만들기
+**구현 완료**:
+- [x] 박스 안에 박스 느낌 제거
+- [x] 투명한 input 필드 (bg-transparent)
+- [x] grid 라인만 표시 (border-r, border-b)
+- [x] focus 시 배경색 변경
+- [x] 생성된 URL 칸 overflow 처리
 
 ---
 
-### 🔹 Step 5-2: CSV 가져오기
-**목표**: CSV 파일을 업로드해서 데이터 불러오기
+## 📚 Phase 5: CSV 기능 (제외)
 
-**배울 내용**:
-- FileReader API
-- PapaParse 라이브러리
-- 파일 업로드 처리
+프로젝트 범위를 줄이기 위해 CSV 기능은 구현하지 않기로 결정했습니다.
+
+~~### 🔹 Step 5-1: CSV 다운로드~~
+~~### 🔹 Step 5-2: CSV 가져오기~~
 
 ---
 
@@ -294,8 +314,68 @@ Phase 1을 완료하면 다음을 이해하게 됩니다:
 - [x] Phase 1: 기초 다지기 (단순 버전) ✅
 - [x] Phase 2: 테이블로 확장 ✅
 - [x] Phase 3: localStorage 지속성 ✅
-- [ ] Phase 4: 저장 기능 (제외)
+- [x] Phase 4: 저장 기능 ✅
 - [ ] Phase 5: CSV 기능 (제외)
+
+---
+
+## 🚀 다음 구현 과제
+
+### 키보드 네비게이션 (Google Sheets/Excel 스타일)
+
+**목표**: 방향키로 셀 간 이동하기
+
+**구현 방법**:
+1. 모든 input 필드에 `data-row-index`와 `data-field` 속성 추가
+2. `onKeyDown` 핸들러로 방향키 감지 (ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Enter)
+3. `focusCell(rowIndex, field)` 함수로 다음 셀에 포커스 이동
+4. 커서 위치 확인하여 텍스트 편집 중일 때는 방향키 동작하지 않도록 처리
+
+**구현 예시**:
+```javascript
+const fields = ['baseUrl', 'source', 'medium', 'campaign', 'term', 'content'];
+
+const handleKeyDown = (e, rowIndex, field) => {
+  const input = e.target;
+  const cursorAtStart = input.selectionStart === 0;
+  const cursorAtEnd = input.selectionStart === input.value.length;
+
+  if (e.key === 'ArrowDown' || e.key === 'Enter') {
+    e.preventDefault();
+    focusCell(rowIndex + 1, field);
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    focusCell(rowIndex - 1, field);
+  } else if (e.key === 'ArrowRight' && cursorAtEnd) {
+    e.preventDefault();
+    const currentFieldIndex = fields.indexOf(field);
+    if (currentFieldIndex < fields.length - 1) {
+      focusCell(rowIndex, fields[currentFieldIndex + 1]);
+    }
+  } else if (e.key === 'ArrowLeft' && cursorAtStart) {
+    e.preventDefault();
+    const currentFieldIndex = fields.indexOf(field);
+    if (currentFieldIndex > 0) {
+      focusCell(rowIndex, fields[currentFieldIndex - 1]);
+    }
+  }
+};
+
+const focusCell = (rowIndex, field) => {
+  const selector = `input[data-row-index="${rowIndex}"][data-field="${field}"]`;
+  const nextInput = document.querySelector(selector);
+  if (nextInput) {
+    nextInput.focus();
+  }
+};
+```
+
+**필요한 작업**:
+- [ ] BuilderTab.jsx의 모든 input에 data 속성 추가
+- [ ] handleKeyDown 함수 구현
+- [ ] focusCell 함수 구현
+- [ ] 커서 위치 체크 로직 추가
+- [ ] 테이블 경계 처리 (첫 행/마지막 행, 첫 열/마지막 열)
 
 ---
 

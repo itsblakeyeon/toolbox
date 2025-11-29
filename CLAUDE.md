@@ -8,9 +8,23 @@ UTM Builder는 마케터들이 여러 개의 UTM URL을 효율적으로 생성�
 
 ## 현재 상태
 
-- **단계**: 개발 전 (가이드 문서만 존재)
-- **목표 기술 스택**: React + Vite, Tailwind CSS
+- **단계**: 핵심 기능 구현 완료
+- **기술 스택**: React + Vite, Tailwind CSS
 - **아키텍처**: localStorage 지속성을 가진 단일 페이지 애플리케이션
+
+### 구현 완료된 기능
+- ✅ BuilderTab: 테이블 기반 UTM URL 생성 인터페이스
+- ✅ SavedTab: 저장된 URL 관리 및 코멘트 편집
+- ✅ UTMGuide: UTM 파라미터 교육 콘텐츠
+- ✅ localStorage 자동 동기화 (useLocalStorage 훅)
+- ✅ Google Sheets 스타일 UI (투명 input, grid 레이아웃)
+- ✅ 체크박스 선택 및 일괄 저장
+- ✅ URL 복사, 행 추가/삭제, 전체 초기화
+
+### 다음 구현 예정
+- ⏭️ 키보드 네비게이션 (방향키로 셀 이동)
+- 🔜 URL 유효성 검사 강화
+- 🔜 키보드 단축키 (Cmd+Enter, Cmd+S, Cmd+A)
 
 ## 프로젝트 초기 설정
 
@@ -21,11 +35,12 @@ npm create vite@latest . -- --template react
 # 기본 의존성 설치
 npm install
 
-# 필수 라이브러리 설치
-npm install papaparse      # CSV 파싱
-npm install date-fns       # 날짜 포맷팅 (선택)
-npm install qrcode.react   # QR 코드 생성 (선택)
+# Tailwind CSS 설치 (이미 완료됨)
+npm install -D tailwindcss postcss autoprefixer
+npx tailwindcss init -p
 ```
+
+**참고**: CSV 기능은 프로젝트 범위에서 제외되었습니다. papaparse 설치 불필요.
 
 ## 아키텍처 계획
 
@@ -51,16 +66,24 @@ src/
 
 ### 핵심 기능
 
-**BuilderTab (우선 구현)**
-- 테이블 컬럼: 체크박스, Base URL, UTM Source, Medium, Campaign, Term, Content, 액션
+**BuilderTab (✅ 구현 완료)**
+- 테이블 컬럼: 체크박스, #, Base URL, Source, Medium, Campaign, Term, Content, 생성된 URL, 액션
 - 필수 필드 입력 시 실시간 URL 생성
-- 대량 작업: 전체 선택, 선택 항목 저장, 전체 복사, CSV 다운로드
-- 행 작업: 추가, 삭제, 초기화
+- Google Sheets 스타일 UI: 투명 input, grid 라인만 표시, focus 시 배경색 변경
+- 대량 작업: 전체 선택/해제, 선택 항목 저장
+- 행 작업: 추가, 삭제, 개별 URL 복사, 전체 초기화
 
-**SavedTab**
-- 저장된 URL 표시: 캠페인명, 타임스탬프, 편집 가능한 코멘트, UTM 요약
-- 작업: 개별 복사/삭제, 일괄 삭제, CSV 내보내기
-- 인라인 코멘트 편집 (클릭 → 수정 → 저장/취소)
+**SavedTab (✅ 구현 완료)**
+- 저장된 URL 표시: 캠페인명(source-medium-campaign), 타임스탬프, 편집 가능한 코멘트, UTM 요약
+- 작업: 개별 복사/삭제, 전체 삭제
+- 인라인 코멘트 편집 (클릭 → input → 저장/취소)
+- localStorage 자동 저장
+
+**UTMGuide (✅ 구현 완료)**
+- UTM 파라미터 5가지 상세 설명 (source, medium, campaign, term, content)
+- 실제 사용 예시 및 베스트 프랙티스
+- Google Analytics 확인 방법 안내
+- SEO 및 Google AdSense 승인을 위한 교육 콘텐츠
 
 **localStorage 지속성**
 - 모든 변경 시 `rows`와 `savedItems` 상태 자동 저장
@@ -77,24 +100,29 @@ src/
 ```
 
 **상태 관리**
-- 모든 비즈니스 로직을 `useUTMBuilder` 커스텀 훅으로 캡슐화
+- useLocalStorage 커스텀 훅으로 자동 localStorage 동기화
 - 컴포넌트는 UI 렌더링에만 집중
-- 각 행의 구조: id, baseUrl, source, medium, campaign, term, content, generatedUrl, selected
+- 각 행의 구조: id, baseUrl, source, medium, campaign, term, content, selected
 
-**CSV 작업**
-- 내보내기 형식: Base URL, Source, Medium, Campaign, Term, Content, Generated URL
-- 가져오기: CSV 파싱 후 기존 행에 추가 (형식 검증)
-- CSV 템플릿 다운로드 제공
+**CSV 작업 (제외됨)**
+- CSV 기능은 프로젝트 범위에서 제외되었습니다
 
 ## 기능 우선순위
 
-1. **localStorage** - 새로고침 시 데이터 지속성
-2. **CSV 가져오기** - 대량 데이터 업로드 기능
-3. **URL 유효성 검사** - 잘못된 URL 입력 방지 및 시각적 피드백
-4. **URL 단축** - Bitly API 연동 (API 키 설정 필요)
+### 구현 완료 ✅
+1. ✅ **localStorage** - 새로고침 시 데이터 지속성 (useLocalStorage 훅)
+2. ✅ **저장 기능** - 선택된 URL을 Saved 탭에 저장 및 관리
+3. ✅ **Google Sheets 스타일 UI** - 투명 input, grid 라인, focus 효과
+
+### 다음 구현 예정
+4. **키보드 네비게이션** - 방향키로 셀 간 이동 (Excel/Google Sheets 스타일)
 5. **키보드 단축키** - Cmd/Ctrl+Enter (행 추가), Cmd/Ctrl+S (저장), Cmd/Ctrl+A (전체 선택)
-6. **프리셋 시스템** - 자주 사용하는 Source+Medium+Campaign 템플릿 저장
-7. **고급 기능** - QR 코드, 통계 대시보드, 협업 기능
+6. **URL 유효성 검사 강화** - 잘못된 URL 입력 방지 및 시각적 피드백 개선
+
+### 향후 고려 사항
+7. **프리셋 시스템** - 자주 사용하는 Source+Medium+Campaign 템플릿 저장
+8. **URL 단축** - Bitly API 연동 (API 키 설정 필요)
+9. **고급 기능** - QR 코드, 통계 대시보드, 협업 기능
 
 ## 개발 참고사항
 
@@ -105,10 +133,14 @@ src/
 - 100개 이상의 행 처리 시 React.memo 사용 고려
 
 ### 스타일링
-- 다크 테마가 기본 (배경: #1a1a2e, 카드: #16213e)
+- 다크 테마가 기본 (배경: #1a1a2e, 카드: #16213e, 테이블: #1a2642)
 - Tailwind 유틸리티 클래스만 사용
-- 반응형 디자인 보장: 모바일(<768px)에서 테이블 → 카드 뷰 전환
-- 긴 URL에 대해 `word-break: break-all` 적용
+- Google Sheets 스타일 구현:
+  - 투명한 input 필드 (bg-transparent)
+  - grid 라인만 표시 (border-r border-b border-gray-700)
+  - focus 시 배경색 변경 (focus:bg-[#1a2642])
+- 생성된 URL: `overflow-x-auto`, `whitespace-nowrap`, `max-w-sm`로 처리
+- 반응형 디자인 보장: 모바일(<768px)에서 테이블 → 카드 뷰 전환 (향후 구현)
 
 ### 데이터 모델
 ```javascript
@@ -168,38 +200,54 @@ useEffect(() => {
 }, [savedItems]);
 ```
 
-## CSV 가져오기 구현 예시
+## 키보드 네비게이션 구현 예시 (다음 구현 과제)
 
 ```javascript
-const handleCSVUpload = (event) => {
-  const file = event.target.files[0];
-  const reader = new FileReader();
+const fields = ['baseUrl', 'source', 'medium', 'campaign', 'term', 'content'];
 
-  reader.onload = (e) => {
-    const text = e.target.result;
-    const lines = text.split('\n');
-    const headers = lines[0].split(',');
+const handleKeyDown = (e, rowIndex, field) => {
+  const input = e.target;
+  const cursorAtStart = input.selectionStart === 0;
+  const cursorAtEnd = input.selectionStart === input.value.length;
 
-    const newRows = lines.slice(1).map((line, index) => {
-      const values = line.split(',');
-      return {
-        id: Date.now() + index,
-        baseUrl: values[0]?.trim() || '',
-        source: values[1]?.trim() || '',
-        medium: values[2]?.trim() || '',
-        campaign: values[3]?.trim() || '',
-        term: values[4]?.trim() || '',
-        content: values[5]?.trim() || '',
-        generatedUrl: '',
-        selected: false
-      };
-    });
-
-    setRows([...rows, ...newRows]);
-  };
-
-  reader.readAsText(file);
+  if (e.key === 'ArrowDown' || e.key === 'Enter') {
+    e.preventDefault();
+    focusCell(rowIndex + 1, field);
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    focusCell(rowIndex - 1, field);
+  } else if (e.key === 'ArrowRight' && cursorAtEnd) {
+    e.preventDefault();
+    const currentFieldIndex = fields.indexOf(field);
+    if (currentFieldIndex < fields.length - 1) {
+      focusCell(rowIndex, fields[currentFieldIndex + 1]);
+    }
+  } else if (e.key === 'ArrowLeft' && cursorAtStart) {
+    e.preventDefault();
+    const currentFieldIndex = fields.indexOf(field);
+    if (currentFieldIndex > 0) {
+      focusCell(rowIndex, fields[currentFieldIndex - 1]);
+    }
+  }
 };
+
+const focusCell = (rowIndex, field) => {
+  const selector = `input[data-row-index="${rowIndex}"][data-field="${field}"]`;
+  const nextInput = document.querySelector(selector);
+  if (nextInput) {
+    nextInput.focus();
+  }
+};
+```
+
+각 input 필드에 data 속성 추가:
+```javascript
+<input
+  data-row-index={index}
+  data-field="baseUrl"
+  onKeyDown={(e) => handleKeyDown(e, index, 'baseUrl')}
+  // ... 기타 props
+/>
 ```
 
 ## URL 유효성 검사 구현 예시
