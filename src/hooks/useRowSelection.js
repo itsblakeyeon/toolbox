@@ -114,28 +114,38 @@ export const useRowSelection = (
         // 범위 내 모든 행 삭제
         const minIndex = Math.min(selectedRange.start, selectedRange.end);
         const maxIndex = Math.max(selectedRange.start, selectedRange.end);
-        const rowsToDelete = [];
-        for (let i = minIndex; i <= maxIndex; i++) {
-          rowsToDelete.push(rows[i].id);
-        }
+        const deleteCount = maxIndex - minIndex + 1;
 
         // 최소 1개 행은 유지해야 함
-        if (rows.length - rowsToDelete.length < 1) {
+        if (rows.length - deleteCount < 1) {
           showToast("최소 1개의 행은 필요합니다!", "warning");
           return;
         }
 
-        // 모든 행 삭제
-        rowsToDelete.forEach((id) => onDeleteRow(id));
+        // 범위 내 행들을 제외한 나머지 행만 유지
+        setRows((prevRows) =>
+          prevRows.filter((_, idx) => idx < minIndex || idx > maxIndex)
+        );
+
+        showToast(`${deleteCount}개 행이 삭제되었습니다!`, "success");
 
         // 범위 선택 해제 및 포커스 조정
         setSelectedRange(null);
-        const remainingRows = rows.filter(
-          (row) => !rowsToDelete.includes(row.id)
-        );
-        if (remainingRows.length > 0) {
-          const newIndex = Math.min(minIndex, remainingRows.length - 1);
-          setSelectedRowIndex(newIndex);
+        const newRowCount = rows.length - deleteCount;
+        if (newRowCount > 0) {
+          const newIndex = Math.min(minIndex, newRowCount - 1);
+
+          // DOM 업데이트 후 포커스
+          requestAnimationFrame(() => {
+            setSelectedRowIndex(newIndex);
+            // tr 요소에 포커스
+            setTimeout(() => {
+              const rowElement = document.querySelector(`tr[data-row-index="${newIndex}"]`);
+              if (rowElement) {
+                rowElement.focus();
+              }
+            }, 0);
+          });
         } else {
           setSelectedRowIndex(null);
         }
@@ -143,14 +153,22 @@ export const useRowSelection = (
         // 단일 행 삭제
         if (rows.length > 1) {
           onDeleteRow(rows[rowIndex].id);
-          // 삭제 후 선택 해제 또는 이전 행 선택
-          if (rowIndex > 0) {
-            setSelectedRowIndex(rowIndex - 1);
-          } else if (rows.length > 1) {
-            setSelectedRowIndex(0);
-          } else {
-            setSelectedRowIndex(null);
-          }
+          showToast("행이 삭제되었습니다!", "success");
+
+          // 삭제 후 포커스할 행 인덱스 결정
+          const newFocusIndex = rowIndex > 0 ? rowIndex - 1 : 0;
+
+          // DOM 업데이트 후 포커스
+          requestAnimationFrame(() => {
+            setSelectedRowIndex(newFocusIndex);
+            // tr 요소에 포커스
+            setTimeout(() => {
+              const rowElement = document.querySelector(`tr[data-row-index="${newFocusIndex}"]`);
+              if (rowElement) {
+                rowElement.focus();
+              }
+            }, 0);
+          });
         } else {
           showToast("최소 1개의 행은 필요합니다!", "warning");
         }

@@ -3,12 +3,15 @@ import { createEmptyRow } from "../utils/rowFactory";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import { useKeyboardNavigation } from "../hooks/useKeyboardNavigation";
 import { useToast } from "../hooks/useToast";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import BuilderTableHeader from "./BuilderTableHeader";
 import UTMTableRow from "./UTMTableRow";
 import Toast from "./Toast";
 
 function BuilderTab({ onSave }) {
+  // 편집 중인 셀 상태 관리 (rowIndex와 field로 특정)
+  const [editingCell, setEditingCell] = useState(null);
+
   // 행 데이터 상태 관리 (localStorage 자동 저장)
   const [rows, setRows] = useLocalStorage("utmBuilderRows", [
     {
@@ -79,7 +82,12 @@ function BuilderTab({ onSave }) {
     handleRowSelectionKeyDown,
     handleInputFocus,
     handleKeyDown,
-  } = useKeyboardNavigation(rows, setRows, fields, deleteRow, toggleSelect);
+  } = useKeyboardNavigation(rows, setRows, fields, deleteRow, toggleSelect, editingCell, setEditingCell);
+
+  // 셀 클릭 핸들러 (편집 모드로 전환)
+  const handleCellClick = (rowIndex, field) => {
+    setEditingCell({ rowIndex, field });
+  };
 
   // 입력 필드 값 변경 핸들러
   const handleChange = (id, field, value) => {
@@ -263,6 +271,7 @@ function BuilderTab({ onSave }) {
                 key={row.id}
                 row={row}
                 index={index}
+                editingCell={editingCell}
                 selectedCell={selectedCell}
                 selectedCellRange={selectedCellRange}
                 selectedRowIndex={selectedRowIndex}
@@ -277,6 +286,7 @@ function BuilderTab({ onSave }) {
                 onCopyUrl={copyUrl}
                 onDeleteRow={deleteRow}
                 onRowSelectionKeyDown={handleRowSelectionKeyDown}
+                onCellClick={handleCellClick}
               />
             ))}
           </tbody>

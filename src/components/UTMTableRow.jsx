@@ -7,6 +7,7 @@ import UTMTableInput from "./UTMTableInput";
 function UTMTableRow({
   row,
   index,
+  editingCell,
   selectedCell,
   selectedCellRange,
   selectedRowIndex,
@@ -21,6 +22,7 @@ function UTMTableRow({
   onCopyUrl,
   onDeleteRow,
   onRowSelectionKeyDown,
+  onCellClick,
 }) {
   const generatedUrl = buildUTMUrl(row);
 
@@ -107,6 +109,12 @@ function UTMTableRow({
 
         const isCellInRange = isInCellRange && isFieldInRange;
 
+        // 편집 모드 확인
+        const isEditing =
+          editingCell &&
+          editingCell.rowIndex === index &&
+          editingCell.field === field.key;
+
         return (
           <td
             key={field.key}
@@ -125,12 +133,17 @@ function UTMTableRow({
               onChange={onChange}
               onFocus={onInputFocus}
               onKeyDown={
-                isCellSelected || isCellInRange
-                  ? (e) => onCellSelectionKeyDown(e, index, field.key)
-                  : onKeyDown
+                isEditing
+                  ? onKeyDown  // 편집 모드: 일반 키보드 네비게이션
+                  : (isCellSelected || isCellInRange)
+                    ? (e) => onCellSelectionKeyDown(e, index, field.key)  // 셀 선택 모드
+                    : onKeyDown  // 기본
               }
               onCompositionStart={onCompositionStart}
               onCompositionEnd={onCompositionEnd}
+              isEditing={isEditing}
+              isCellSelected={isCellSelected}
+              onCellClick={onCellClick}
             />
           </td>
         );

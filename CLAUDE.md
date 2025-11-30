@@ -2,9 +2,17 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## 개발 철학
+
+**문제 해결 접근 방식:**
+- 임시방편적인 해결책보다는 **근본적인 문제 해결**을 우선시합니다
+- CTO 관점에서 아키텍처와 설계를 고려합니다
+- 상태 관리, 렌더링 로직, 사용자 경험을 종합적으로 검토합니다
+- 복잡한 조건문이나 타이밍 해킹 대신 **명확한 상태 흐름**을 선호합니다
+
 ## 프로젝트 개요
 
-UTM Builder는 마케터들이 여러 개의 UTM URL을 효율적으로 생성하고 관리할 수 있도록 설계된 다크 테마의 테이블 기반 UTM 파라미터 생성 도구입니다.
+UTM Builder는 마케터들이 여러 개의 UTM URL을 효율적으로 생성하고 관리할 수 있도록 설계된 다크 테마의 테이블 기반 UTM 파라미터 생성 도구입니다. **Notion 스타일의 테이블 인터랙션**을 구현하여 직관적이고 효율적인 사용자 경험을 제공합니다.
 
 ## 현재 상태
 
@@ -137,13 +145,14 @@ src/
 1. ✅ **localStorage** - 새로고침 시 데이터 지속성 (useLocalStorage 훅)
 2. ✅ **저장 기능** - 선택된 URL을 Saved 탭에 저장 및 관리
 3. ✅ **Google Sheets 스타일 UI** - 투명 input, grid 라인, focus 효과
-4. ✅ **키보드 네비게이션** - 방향키로 셀 간 이동 (Excel/Google Sheets 스타일)
+4. ✅ **Notion 스타일 키보드 네비게이션** - 완벽한 셀/행 모드 전환
 5. ✅ **키보드 단축키** - Cmd/Ctrl+S (저장), Cmd/Ctrl+A (전체 선택)
 6. ✅ **셀 단위 선택** - Notion 스타일 (ESC로 셀/행 선택 모드 전환)
 7. ✅ **셀 범위 복사/붙여넣기** - Shift+방향키로 범위 선택, 탭/줄바꿈으로 구분된 텍스트 지원
-8. ✅ **행 범위 복사/붙여넣기** - Shift+방향키로 여러 행 선택 및 복사/붙여넣기
+8. ✅ **행 범위 복사/붙여넣기** - Shift+방향키로 여러 행 선택 및 복사/붙여넣기, 범위 삭제
 9. ✅ **토스트 알림** - 복사/붙여넣기 성공 알림 (2초 자동 사라짐)
 10. ✅ **리팩토링** - 관심사 분리 (useCellSelection, useRowSelection, useKeyboardNavigation)
+11. ✅ **포커스 관리 최적화** - useEffect 기반 자동 포커스, 근본적인 상태 관리 개선
 
 ### 다음 구현 예정
 
@@ -264,11 +273,42 @@ useEffect(() => {
 - 행 삭제 (Delete/Backspace)
 - 체크박스 토글 (Spacebar)
 
-### 선택 모드 전환 흐름
+### Notion 스타일 셀/행 모드 전환 (핵심 아키텍처)
 
-1. **편집 모드** (input에 포커스) → ESC → **셀 선택 모드**
-2. **셀 선택 모드** → ESC → **행 선택 모드**
-3. **행 선택 모드** → ESC → **편집 모드** (선택 해제)
+**상태 관리 설계 원칙:**
+- `isCellSelected`가 true → div 렌더링 (셀 선택 모드, 커서 없음)
+- `isCellSelected`가 false → input 렌더링 (편집 모드, 커서 있음)
+- `isEditing`은 명시적 포커스 제어용 (useEffect로 자동 포커스)
+
+**모드 전환 흐름:**
+1. **편집 모드** (input 렌더링, 커서 있음) → ESC → **셀 선택 모드** (div 렌더링, 커서 없음)
+2. **셀 선택 모드** → Enter/타이핑 → **편집 모드** (input 렌더링, 자동 포커스)
+3. **셀 선택 모드** → ESC → **행 선택 모드** (tr에 포커스)
+4. **행 선택 모드** → Enter → **편집 모드** (마지막 필드로 복귀)
+
+**포커스 관리 (근본적 해결):**
+```javascript
+// UTMTableInput.jsx - useEffect로 자동 포커스
+const inputRef = useRef(null);
+const divRef = useRef(null);
+
+useEffect(() => {
+  if (isCellSelected && divRef.current) {
+    divRef.current.focus();
+  }
+}, [isCellSelected]);
+
+useEffect(() => {
+  if (isEditing && inputRef.current) {
+    inputRef.current.focus();
+  }
+}, [isEditing]);
+```
+
+**핵심 개선 사항:**
+- ❌ 임시방편: `requestAnimationFrame`, `setTimeout`, DOM querySelector 반복
+- ✅ 근본 해결: `useEffect` + `ref`로 렌더링 사이클에 맞춘 자동 포커스
+- ✅ 명확한 상태 흐름: `setSelectedCell(null)` → input 렌더링 → `setEditingCell()` → 자동 포커스
 
 ## 키보드 네비게이션 구현 (✅ 구현 완료)
 

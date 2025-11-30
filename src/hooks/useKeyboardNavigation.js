@@ -19,7 +19,9 @@ export const useKeyboardNavigation = (
   setRows,
   fields,
   onDeleteRow,
-  onToggleSelect
+  onToggleSelect,
+  editingCell,
+  setEditingCell
 ) => {
   // 마지막으로 포커스된 필드 (행 선택 모드 진입 전)
   const [lastFocusedField, setLastFocusedField] = useState("baseUrl");
@@ -53,7 +55,7 @@ export const useKeyboardNavigation = (
     setSelectedCell,
     setSelectedCellRange,
     handleCellSelectionKeyDown,
-  } = useCellSelection(rows, setRows, fields, showToast);
+  } = useCellSelection(rows, setRows, fields, showToast, setEditingCell);
 
   // 행 선택 훅
   const {
@@ -72,17 +74,37 @@ export const useKeyboardNavigation = (
     lastFocusedField
   );
 
-  // input 필드 포커스 핸들러 (행 선택 모드 해제, 셀 선택 모드는 유지)
+  // 셀 선택 모드 키보드 핸들러 (ESC 처리 추가)
+  const wrappedCellSelectionKeyDown = (e, rowIndex, field) => {
+    // ESC: 셀 선택 해제 후 행 선택 모드로 전환
+    if (e.key === "Escape") {
+      e.preventDefault();
+      setSelectedCell(null);
+      setSelectedCellRange(null);
+      setSelectedRowIndex(rowIndex);
+      setSelectedRange(null);
+
+      // tr 요소에 포커스
+      requestAnimationFrame(() => {
+        const rowElement = document.querySelector(`tr[data-row-index="${rowIndex}"]`);
+        if (rowElement) {
+          rowElement.focus();
+        }
+      });
+      return;
+    }
+
+    // 나머지는 원래 핸들러에 위임
+    handleCellSelectionKeyDown(e, rowIndex, field);
+  };
+
+  // input 필드 포커스 핸들러 (행 선택 모드 해제, 편집 모드로 전환)
   const handleInputFocus = (field, rowIndex) => {
     setSelectedRowIndex(null);
-    // 셀 선택 모드는 포커스 시에도 유지 (ESC로만 해제)
-    // 단, 다른 셀로 포커스가 이동한 경우는 해제
-    if (
-      selectedCell &&
-      (selectedCell.rowIndex !== rowIndex || selectedCell.field !== field)
-    ) {
-      setSelectedCell(null);
-    }
+    setSelectedCell(null);
+    setSelectedCellRange(null);
+    // 편집 모드로 전환
+    setEditingCell({ rowIndex, field });
     setLastFocusedField(field);
   };
 
@@ -98,32 +120,34 @@ export const useKeyboardNavigation = (
     const cursorAtStart = input.selectionStart === 0;
     const cursorAtEnd = input.selectionStart === input.value.length;
 
-    // ESC: 셀 선택 모드로 전환 (2단계: 셀 선택 → 행 선택)
+    // ESC: 편집 모드 종료 → 셀 선택 모드 (2단계: 셀 선택 → 행 선택)
     if (e.key === "Escape") {
       e.preventDefault();
+
+      // 편집 모드인지 확인
+      const isEditingMode = editingCell &&
+        editingCell.rowIndex === rowIndex &&
+        editingCell.field === field;
+
       // 현재 셀이 이미 선택되어 있는지 확인
       const isCurrentCellSelected =
         selectedCell &&
         selectedCell.rowIndex === rowIndex &&
         selectedCell.field === field;
 
-      if (isCurrentCellSelected) {
-        // 셀 선택 모드에서 ESC → 행 선택 모드로 전환
-        setSelectedCell(null);
-        setSelectedCellRange(null);
-        setSelectedRowIndex(rowIndex);
-        setSelectedRange(null);
-        input.blur();
-      } else {
-        // 편집 모드에서 ESC → 셀 선택 모드로 전환
+      if (isEditingMode) {
+        // 편집 모드 → 셀 선택 모드
+        setEditingCell(null);
         setSelectedCell({ rowIndex, field });
         setSelectedCellRange(null);
         setSelectedRowIndex(null);
         setSelectedRange(null);
-        // input 포커스 유지하되 텍스트 선택
-        setTimeout(() => {
-          input.select();
-        }, 0);
+      } else if (isCurrentCellSelected) {
+        // 셀 선택 모드 → 행 선택 모드
+        setSelectedCell(null);
+        setSelectedCellRange(null);
+        setSelectedRowIndex(rowIndex);
+        setSelectedRange(null);
       }
       return;
     }
@@ -199,7 +223,7 @@ export const useKeyboardNavigation = (
     selectedRange,
     isComposing,
     setIsComposing,
-    handleCellSelectionKeyDown,
+    handleCellSelectionKeyDown: wrappedCellSelectionKeyDown,
     handleRowSelectionKeyDown,
     handleInputFocus,
     handleKeyDown,

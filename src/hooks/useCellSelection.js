@@ -6,7 +6,7 @@ import { useState, useEffect, useRef } from "react";
  * - 셀 범위 선택 (Shift + 방향키)
  * - 셀 선택 모드 키보드 핸들러
  */
-export const useCellSelection = (rows, setRows, fields, showToast) => {
+export const useCellSelection = (rows, setRows, fields, showToast, setEditingCell) => {
   // 셀 선택 상태 (rowIndex와 field로 특정 셀 선택)
   const [selectedCell, setSelectedCell] = useState(null);
 
@@ -19,29 +19,12 @@ export const useCellSelection = (rows, setRows, fields, showToast) => {
     selectedCellRangeRef.current = selectedCellRange;
   }, [selectedCellRange]);
 
-  // 셀이 선택되었을 때 해당 셀에 포커스
-  useEffect(() => {
-    if (selectedCell) {
-      requestAnimationFrame(() => {
-        const cellInput = document.querySelector(
-          `input[data-row-index="${selectedCell.rowIndex}"][data-field="${selectedCell.field}"]`
-        );
-        if (cellInput) {
-          cellInput.focus();
-          cellInput.select();
-        }
-      });
-    }
-  }, [selectedCell]);
-
   // 셀 선택 모드용 키보드 핸들러
   const handleCellSelectionKeyDown = (e, rowIndex, field) => {
     // Chrome 확장 프로그램 충돌 방지
     if (!e || !e.key) return;
 
-    const input = document.querySelector(
-      `input[data-row-index="${rowIndex}"][data-field="${field}"]`
-    );
+    // ESC는 useKeyboardNavigation의 wrappedCellSelectionKeyDown에서 처리
 
     // Shift + ArrowUp/Down/Left/Right: 셀 범위 선택
     if (
@@ -103,7 +86,7 @@ export const useCellSelection = (rows, setRows, fields, showToast) => {
             if (idx >= minRow && idx <= maxRow) {
               const updatedRow = { ...row };
               for (let i = minFieldIndex; i <= maxFieldIndex; i++) {
-                updatedRow[fields[i].key] = "";
+                updatedRow[fields[i]] = "";
               }
               return updatedRow;
             }
@@ -144,15 +127,17 @@ export const useCellSelection = (rows, setRows, fields, showToast) => {
         for (let r = minRow; r <= maxRow; r++) {
           const rowValues = [];
           for (let f = minFieldIndex; f <= maxFieldIndex; f++) {
-            rowValues.push(rows[r][fields[f].key] || "");
+            rowValues.push(rows[r][fields[f]] || "");
           }
           cellValues.push(rowValues.join("\t"));
         }
         const textToCopy = cellValues.join("\n");
         navigator.clipboard.writeText(textToCopy);
         showToast("셀 범위가 클립보드에 복사되었습니다!", "success");
-      } else if (input && input.value) {
-        navigator.clipboard.writeText(input.value);
+      } else {
+        // 단일 셀 복사
+        const cellValue = rows[rowIndex][field] || "";
+        navigator.clipboard.writeText(cellValue);
         showToast("셀 값이 클립보드에 복사되었습니다!", "success");
       }
       return;
@@ -188,7 +173,7 @@ export const useCellSelection = (rows, setRows, fields, showToast) => {
                     if (targetFieldIndex < fields.length) {
                       newRows[targetRowIndex] = {
                         ...newRows[targetRowIndex],
-                        [fields[targetFieldIndex].key]: value.trim(),
+                        [fields[targetFieldIndex]]: value.trim(),
                       };
                     }
                   });
@@ -250,27 +235,25 @@ export const useCellSelection = (rows, setRows, fields, showToast) => {
       return;
     }
 
-    // Enter 또는 문자 입력: 셀 선택 해제 및 편집 모드
-    if (e.key === "Enter" || e.key.length === 1) {
+    // Enter 또는 문자 입력: 편집 모드로 전환
+    if (e.key === "Enter" || (e.key.length === 1 && !e.ctrlKey && !e.metaKey)) {
       e.preventDefault();
-      setSelectedCell(null);
-      if (input) {
-        input.focus();
-        // 문자 입력인 경우 해당 문자로 시작
-        if (e.key.length === 1 && e.key !== "Enter") {
-          setRows((prevRows) =>
-            prevRows.map((row, idx) =>
-              idx === rowIndex ? { ...row, [field]: e.key } : row
-            )
-          );
-          // 커서를 끝으로 이동
-          requestAnimationFrame(() => {
-            if (input) {
-              input.setSelectionRange(1, 1);
-            }
-          });
-        }
+
+      // 문자 입력인 경우 해당 문자로 시작
+      if (e.key.length === 1 && e.key !== "Enter") {
+        setRows((prevRows) =>
+          prevRows.map((row, idx) =>
+            idx === rowIndex ? { ...row, [field]: e.key } : row
+          )
+        );
       }
+
+      // 셀 선택 해제 → 자동으로 input 렌더링 및 포커스
+      setSelectedCell(null);
+      setSelectedCellRange(null);
+      // editingCell 설정 (포커스를 위해)
+      setEditingCell({ rowIndex, field });
+
       return;
     }
   };
@@ -283,4 +266,9 @@ export const useCellSelection = (rows, setRows, fields, showToast) => {
     handleCellSelectionKeyDown,
   };
 };
+
+
+
+
+
 
