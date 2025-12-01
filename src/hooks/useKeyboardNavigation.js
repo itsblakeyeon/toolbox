@@ -26,6 +26,9 @@ export const useKeyboardNavigation = (
   // 마지막으로 포커스된 필드 (행 선택 모드 진입 전)
   const [lastFocusedField, setLastFocusedField] = useState("baseUrl");
 
+  // 한글 입력 중인지 확인 (IME composition)
+  const [isComposing, setIsComposing] = useState(false);
+
   // 토스트 알림 훅
   const { showToast } = useToast();
 
@@ -164,6 +167,9 @@ export const useKeyboardNavigation = (
 
     // Enter: 아래 행으로 이동 (마지막 행이면 새 행 추가)
     if (e.key === "Enter") {
+      // 한글 조합 중이면 무시
+      if (isComposing) return;
+
       e.preventDefault();
 
       // 마지막 행인 경우 새 행 추가
@@ -219,5 +225,8 @@ export const useKeyboardNavigation = (
     handleRowSelectionKeyDown,
     handleInputFocus,
     handleKeyDown,
+    isComposing,
+    onCompositionStart: () => setIsComposing(true),
+    onCompositionEnd: () => setIsComposing(false),
   };
 };

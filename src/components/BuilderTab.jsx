@@ -59,6 +59,9 @@ function BuilderTab({ onSave }) {
     handleRowSelectionKeyDown,
     handleInputFocus,
     handleKeyDown,
+    isComposing,
+    onCompositionStart,
+    onCompositionEnd,
   } = useKeyboardNavigation(rows, setRows, fields, deleteRow, toggleSelect, editingCell, setEditingCell);
 
   // 셀 클릭 핸들러 (편집 모드로 전환)
@@ -239,8 +242,8 @@ function BuilderTab({ onSave }) {
                 onInputFocus={handleInputFocus}
                 onKeyDown={handleKeyDown}
                 onCellSelectionKeyDown={handleCellSelectionKeyDown}
-                onCompositionStart={() => setIsComposing(true)}
-                onCompositionEnd={() => setIsComposing(false)}
+                onCompositionStart={onCompositionStart}
+                onCompositionEnd={onCompositionEnd}
                 onCopyUrl={copyUrl}
                 onDeleteRow={deleteRow}
                 onRowSelectionKeyDown={handleRowSelectionKeyDown}
