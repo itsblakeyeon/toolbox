@@ -1,6 +1,7 @@
 import { buildUTMUrl } from "../utils/urlBuilder";
 import { createEmptyRow } from "../utils/rowFactory";
 import { useLocalStorage } from "../hooks/useLocalStorage";
+import { useHistory } from "../hooks/useHistory";
 import { useKeyboardNavigation } from "../hooks/useKeyboardNavigation";
 import { useToast } from "../hooks/useToast";
 import { useEffect, useRef, useState } from "react";
@@ -12,39 +13,22 @@ function BuilderTab({ onSave }) {
   // 편집 중인 셀 상태 관리 (rowIndex와 field로 특정)
   const [editingCell, setEditingCell] = useState(null);
 
-  // 행 데이터 상태 관리 (localStorage 자동 저장)
-  const [rows, setRows] = useLocalStorage("utmBuilderRows", [
-    {
-      id: 1,
-      baseUrl: "https://example.com",
-      source: "google",
-      medium: "cpc",
-      campaign: "spring_sale",
-      term: "running shoes",
-      content: "text_ad",
-      selected: false,
-    },
-    {
-      id: 2,
-      baseUrl: "https://example.com",
-      source: "facebook",
-      medium: "social",
-      campaign: "new_product",
-      term: "",
-      content: "carousel_ad",
-      selected: false,
-    },
-    {
-      id: 3,
-      baseUrl: "https://example.com",
-      source: "newsletter",
-      medium: "email",
-      campaign: "weekly_news",
-      term: "",
-      content: "header_banner",
-      selected: false,
-    },
+  // localStorage에서 초기값 로드
+  const [savedRows] = useLocalStorage("utmBuilderRows", [
+    createEmptyRow(),
+    createEmptyRow(),
+    createEmptyRow(),
   ]);
+
+  // Undo/Redo 기능이 있는 상태 관리 (최대 10개 히스토리)
+  const {
+    state: rows,
+    setState: setRows,
+    undo,
+    redo,
+    canUndo,
+    canRedo
+  } = useHistory(savedRows, 10);
 
   // 편집 가능한 필드 목록 (키보드 네비게이션용)
   const fields = ["baseUrl", "source", "medium", "campaign", "term", "content"];
@@ -191,6 +175,15 @@ function BuilderTab({ onSave }) {
     }
   };
 
+  // localStorage에 자동 저장 (디바운스)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      localStorage.setItem("utmBuilderRows", JSON.stringify(rows));
+    }, 500); // 500ms 후 저장
+
+    return () => clearTimeout(timer);
+  }, [rows]);
+
   // 전역 키보드 단축키 핸들러
   useEffect(() => {
     const handleGlobalKeyDown = (e) => {
@@ -199,6 +192,26 @@ function BuilderTab({ onSave }) {
         e.target.tagName === "INPUT" ||
         e.target.tagName === "TEXTAREA" ||
         e.target.isContentEditable;
+
+      // Cmd/Ctrl + Z: Undo
+      if ((e.metaKey || e.ctrlKey) && e.key === "z" && !e.shiftKey) {
+        e.preventDefault();
+        if (canUndo) {
+          undo();
+          showToast("실행 취소", "success");
+        }
+        return;
+      }
+
+      // Cmd/Ctrl + Shift + Z: Redo
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === "z") {
+        e.preventDefault();
+        if (canRedo) {
+          redo();
+          showToast("다시 실행", "success");
+        }
+        return;
+      }
 
       // Cmd/Ctrl + S: 선택 항목 저장
       if ((e.metaKey || e.ctrlKey) && e.key === "s") {
@@ -226,7 +239,7 @@ function BuilderTab({ onSave }) {
 
     window.addEventListener("keydown", handleGlobalKeyDown);
     return () => window.removeEventListener("keydown", handleGlobalKeyDown);
-  }, [setRows]);
+  }, [setRows, undo, redo, canUndo, canRedo, showToast]);
 
   return (
     <div className="max-w-full mx-auto p-6">
