@@ -1,10 +1,8 @@
 import { buildUTMUrl } from "../utils/urlBuilder";
 import { createEmptyRow } from "../utils/rowFactory";
-import { useLocalStorage } from "../hooks/useLocalStorage";
-import { useHistory } from "../hooks/useHistory";
 import { useKeyboardNavigation } from "../hooks/useKeyboardNavigation";
 import { useToast } from "../hooks/useToast";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import BuilderTableHeader from "./BuilderTableHeader";
 import UTMTableRow from "./UTMTableRow";
 import Toast from "./Toast";
@@ -13,22 +11,18 @@ function BuilderTab({ onSave }) {
   // 편집 중인 셀 상태 관리 (rowIndex와 field로 특정)
   const [editingCell, setEditingCell] = useState(null);
 
-  // localStorage에서 초기값 로드
-  const [savedRows] = useLocalStorage("utmBuilderRows", [
-    createEmptyRow(),
-    createEmptyRow(),
-    createEmptyRow(),
-  ]);
-
-  // Undo/Redo 기능이 있는 상태 관리 (최대 10개 히스토리)
-  const {
-    state: rows,
-    setState: setRows,
-    undo,
-    redo,
-    canUndo,
-    canRedo
-  } = useHistory(savedRows, 10);
+  // 행 데이터 상태 (단순한 useState)
+  const [rows, setRows] = useState(() => {
+    const saved = localStorage.getItem("utmBuilderRows");
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        return [createEmptyRow(), createEmptyRow(), createEmptyRow()];
+      }
+    }
+    return [createEmptyRow(), createEmptyRow(), createEmptyRow()];
+  });
 
   // 편집 가능한 필드 목록 (키보드 네비게이션용)
   const fields = ["baseUrl", "source", "medium", "campaign", "term", "content"];
@@ -162,10 +156,6 @@ function BuilderTab({ onSave }) {
     }
   };
 
-  // saveSelected 함수를 ref로 저장하여 최신 버전 유지
-  const saveSelectedRef = useRef(saveSelected);
-  saveSelectedRef.current = saveSelected;
-
   // 특정 행의 URL 복사
   const copyUrl = (row) => {
     const url = buildUTMUrl(row);
@@ -184,62 +174,18 @@ function BuilderTab({ onSave }) {
     return () => clearTimeout(timer);
   }, [rows]);
 
-  // 전역 키보드 단축키 핸들러
+  // Cmd+Z, Cmd+Shift+Z 완전히 막기
   useEffect(() => {
-    const handleGlobalKeyDown = (e) => {
-      // input, textarea 등 입력 필드에 포커스가 있을 때는 제외
-      const isInputFocused =
-        e.target.tagName === "INPUT" ||
-        e.target.tagName === "TEXTAREA" ||
-        e.target.isContentEditable;
-
-      // Cmd/Ctrl + Z: Undo
-      if ((e.metaKey || e.ctrlKey) && e.key === "z" && !e.shiftKey) {
+    const handleKeyDown = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'z') {
         e.preventDefault();
-        if (canUndo) {
-          undo();
-          showToast("실행 취소", "success");
-        }
-        return;
-      }
-
-      // Cmd/Ctrl + Shift + Z: Redo
-      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === "z") {
-        e.preventDefault();
-        if (canRedo) {
-          redo();
-          showToast("다시 실행", "success");
-        }
-        return;
-      }
-
-      // Cmd/Ctrl + S: 선택 항목 저장
-      if ((e.metaKey || e.ctrlKey) && e.key === "s") {
-        e.preventDefault();
-        if (!isInputFocused) {
-          // ref를 통해 최신 함수 호출
-          saveSelectedRef.current();
-        }
-        return;
-      }
-
-      // Cmd/Ctrl + A: 전체 선택/해제
-      if ((e.metaKey || e.ctrlKey) && e.key === "a") {
-        // input 필드에 포커스가 있으면 기본 동작 허용 (전체 선택)
-        if (isInputFocused) {
-          return;
-        }
-        e.preventDefault();
-        setRows((prevRows) => {
-          const allSelected = prevRows.every((row) => row.selected);
-          return prevRows.map((row) => ({ ...row, selected: !allSelected }));
-        });
+        e.stopPropagation();
       }
     };
 
-    window.addEventListener("keydown", handleGlobalKeyDown);
-    return () => window.removeEventListener("keydown", handleGlobalKeyDown);
-  }, [setRows, undo, redo, canUndo, canRedo, showToast]);
+    window.addEventListener('keydown', handleKeyDown, true);
+    return () => window.removeEventListener('keydown', handleKeyDown, true);
+  }, []);
 
   return (
     <div className="max-w-full mx-auto p-6">

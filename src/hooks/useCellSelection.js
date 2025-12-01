@@ -155,43 +155,33 @@ export const useCellSelection = (rows, setRows, fields, showToast, setEditingCel
           const lines = text.split("\n").filter((line) => line.trim());
           if (lines.length === 0) return;
 
+          // 시작 셀 결정 (범위 선택 중이면 시작 셀, 아니면 현재 셀)
           const currentRange = selectedCellRangeRef.current;
-          if (currentRange) {
-            // 범위 선택 시: 시작 셀부터 여러 행/열에 붙여넣기
-            const startRow = currentRange.start.rowIndex;
-            const startFieldIndex = fields.indexOf(currentRange.start.field);
+          const startRow = currentRange ? currentRange.start.rowIndex : rowIndex;
+          const startField = currentRange ? currentRange.start.field : field;
+          const startFieldIndex = fields.indexOf(startField);
 
-            setRows((prevRows) => {
-              const newRows = [...prevRows];
-              lines.forEach((line, lineIndex) => {
-                const values = line.split("\t");
-                const targetRowIndex = startRow + lineIndex;
+          setRows((prevRows) => {
+            const newRows = [...prevRows];
+            lines.forEach((line, lineIndex) => {
+              const values = line.split("\t");
+              const targetRowIndex = startRow + lineIndex;
 
-                if (targetRowIndex < newRows.length) {
-                  values.forEach((value, colIndex) => {
-                    const targetFieldIndex = startFieldIndex + colIndex;
-                    if (targetFieldIndex < fields.length) {
-                      newRows[targetRowIndex] = {
-                        ...newRows[targetRowIndex],
-                        [fields[targetFieldIndex]]: value.trim(),
-                      };
-                    }
-                  });
-                }
-              });
-              return newRows;
+              if (targetRowIndex < newRows.length) {
+                values.forEach((value, colIndex) => {
+                  const targetFieldIndex = startFieldIndex + colIndex;
+                  if (targetFieldIndex < fields.length) {
+                    newRows[targetRowIndex] = {
+                      ...newRows[targetRowIndex],
+                      [fields[targetFieldIndex]]: value.trim(),
+                    };
+                  }
+                });
+              }
             });
-            showToast("셀 범위에 붙여넣었습니다!", "success");
-          } else {
-            // 단일 셀 선택 시: 현재 셀에 첫 번째 값만 붙여넣기
-            const firstValue = lines[0].split("\t")[0];
-            setRows((prevRows) =>
-              prevRows.map((row, idx) =>
-                idx === rowIndex ? { ...row, [field]: firstValue.trim() } : row
-              )
-            );
-            showToast("셀에 붙여넣었습니다!", "success");
-          }
+            return newRows;
+          });
+          showToast("붙여넣었습니다!", "success");
         })
         .catch(() => {
           showToast("클립보드 읽기에 실패했습니다!", "error");
@@ -199,10 +189,19 @@ export const useCellSelection = (rows, setRows, fields, showToast, setEditingCel
       return;
     }
 
-    // 방향키: 인접 셀로 이동 (범위 선택 초기화)
+    // 방향키: 인접 셀로 이동 (범위 선택 중이면 시작점 기준)
     if (e.key === "ArrowUp") {
       e.preventDefault();
-      if (rowIndex > 0) {
+      const currentRange = selectedCellRangeRef.current;
+      if (currentRange) {
+        // 범위 선택 중이면 시작점 기준으로 위로 이동
+        const startRow = currentRange.start.rowIndex;
+        const startField = currentRange.start.field;
+        if (startRow > 0) {
+          setSelectedCell({ rowIndex: startRow - 1, field: startField });
+          setSelectedCellRange(null);
+        }
+      } else if (rowIndex > 0) {
         setSelectedCell({ rowIndex: rowIndex - 1, field });
         setSelectedCellRange(null);
       }
@@ -210,7 +209,16 @@ export const useCellSelection = (rows, setRows, fields, showToast, setEditingCel
     }
     if (e.key === "ArrowDown") {
       e.preventDefault();
-      if (rowIndex < rows.length - 1) {
+      const currentRange = selectedCellRangeRef.current;
+      if (currentRange) {
+        // 범위 선택 중이면 시작점 기준으로 아래로 이동
+        const startRow = currentRange.start.rowIndex;
+        const startField = currentRange.start.field;
+        if (startRow < rows.length - 1) {
+          setSelectedCell({ rowIndex: startRow + 1, field: startField });
+          setSelectedCellRange(null);
+        }
+      } else if (rowIndex < rows.length - 1) {
         setSelectedCell({ rowIndex: rowIndex + 1, field });
         setSelectedCellRange(null);
       }
@@ -218,19 +226,43 @@ export const useCellSelection = (rows, setRows, fields, showToast, setEditingCel
     }
     if (e.key === "ArrowLeft") {
       e.preventDefault();
-      const currentFieldIndex = fields.indexOf(field);
-      if (currentFieldIndex > 0) {
-        setSelectedCell({ rowIndex, field: fields[currentFieldIndex - 1] });
-        setSelectedCellRange(null);
+      const currentRange = selectedCellRangeRef.current;
+      if (currentRange) {
+        // 범위 선택 중이면 시작점 기준으로 왼쪽으로 이동
+        const startRow = currentRange.start.rowIndex;
+        const startField = currentRange.start.field;
+        const startFieldIndex = fields.indexOf(startField);
+        if (startFieldIndex > 0) {
+          setSelectedCell({ rowIndex: startRow, field: fields[startFieldIndex - 1] });
+          setSelectedCellRange(null);
+        }
+      } else {
+        const currentFieldIndex = fields.indexOf(field);
+        if (currentFieldIndex > 0) {
+          setSelectedCell({ rowIndex, field: fields[currentFieldIndex - 1] });
+          setSelectedCellRange(null);
+        }
       }
       return;
     }
     if (e.key === "ArrowRight") {
       e.preventDefault();
-      const currentFieldIndex = fields.indexOf(field);
-      if (currentFieldIndex < fields.length - 1) {
-        setSelectedCell({ rowIndex, field: fields[currentFieldIndex + 1] });
-        setSelectedCellRange(null);
+      const currentRange = selectedCellRangeRef.current;
+      if (currentRange) {
+        // 범위 선택 중이면 시작점 기준으로 오른쪽으로 이동
+        const startRow = currentRange.start.rowIndex;
+        const startField = currentRange.start.field;
+        const startFieldIndex = fields.indexOf(startField);
+        if (startFieldIndex < fields.length - 1) {
+          setSelectedCell({ rowIndex: startRow, field: fields[startFieldIndex + 1] });
+          setSelectedCellRange(null);
+        }
+      } else {
+        const currentFieldIndex = fields.indexOf(field);
+        if (currentFieldIndex < fields.length - 1) {
+          setSelectedCell({ rowIndex, field: fields[currentFieldIndex + 1] });
+          setSelectedCellRange(null);
+        }
       }
       return;
     }

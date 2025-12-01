@@ -91,20 +91,32 @@ export const useRowSelection = (
       return;
     }
 
-    // ArrowUp: 위 행 선택
+    // ArrowUp: 위 행 선택 (범위 선택 중이면 시작점 기준으로 이동)
     if (e.key === "ArrowUp") {
       e.preventDefault();
-      if (rowIndex > 0) {
+      if (selectedRange) {
+        // 범위 선택 중이면 시작점에서 위로 이동
+        const startIndex = selectedRange.start;
+        if (startIndex > 0) {
+          setSelectedRowIndex(startIndex - 1);
+          setSelectedRange(null);
+        }
+      } else if (rowIndex > 0) {
         setSelectedRowIndex(rowIndex - 1);
-        setSelectedRange(null); // 범위 선택 초기화
       }
     }
-    // ArrowDown: 아래 행 선택
+    // ArrowDown: 아래 행 선택 (범위 선택 중이면 시작점 기준으로 이동)
     else if (e.key === "ArrowDown") {
       e.preventDefault();
-      if (rowIndex < rows.length - 1) {
+      if (selectedRange) {
+        // 범위 선택 중이면 시작점에서 아래로 이동
+        const startIndex = selectedRange.start;
+        if (startIndex < rows.length - 1) {
+          setSelectedRowIndex(startIndex + 1);
+          setSelectedRange(null);
+        }
+      } else if (rowIndex < rows.length - 1) {
         setSelectedRowIndex(rowIndex + 1);
-        setSelectedRange(null); // 범위 선택 초기화
       }
     }
     // Delete 또는 Backspace: 행 삭제 (범위 선택 중이면 모든 행 삭제)
