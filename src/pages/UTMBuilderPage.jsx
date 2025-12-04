@@ -28,6 +28,13 @@ function UTMBuilderPage() {
     }
   };
 
+  // 선택 항목 일괄 삭제
+  const handleDeleteSelected = (ids) => {
+    if (confirm(`선택한 ${ids.length}개 항목을 삭제하시겠습니까?`)) {
+      setSavedItems(savedItems.filter((item) => !ids.includes(item.id)));
+    }
+  };
+
   // 코멘트 업데이트
   const handleUpdateComment = (id, comment) => {
     setSavedItems(
@@ -36,12 +43,12 @@ function UTMBuilderPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#1a1a2e]">
-      <div className="container mx-auto py-8">
+    <div className="min-h-screen relative z-10">
+      <div className="container mx-auto py-8 relative z-10">
         <div className="mb-8">
           <Link
             to="/"
-            className="inline-flex items-center text-gray-400 hover:text-white transition-colors mb-4"
+            className="inline-flex items-center text-gray-300 hover:text-white transition-colors mb-4 glass px-4 py-2 rounded-xl shadow-lg"
           >
             <svg
               className="w-5 h-5 mr-2"
@@ -59,30 +66,30 @@ function UTMBuilderPage() {
             Home
           </Link>
           <div className="text-center">
-            <h1 className="text-4xl font-bold text-white mb-2">UTM Builder</h1>
-            <p className="text-gray-400">UTM builder for marketers</p>
+            <h1 className="text-4xl font-bold text-white mb-2 drop-shadow-lg">UTM Builder</h1>
+            <p className="text-gray-300">UTM builder for marketers</p>
           </div>
         </div>
 
         {/* 탭 전환 UI */}
         <div className="flex justify-center mb-6">
-          <div className="inline-flex rounded-lg bg-[#16213e] p-1">
+          <div className="inline-flex rounded-2xl glass-strong p-1.5 shadow-xl">
             <button
               onClick={() => setActiveTab("builder")}
-              className={`px-6 py-2 rounded-md font-medium transition duration-200 ${
+              className={`px-6 py-2.5 rounded-xl font-medium transition-all duration-200 ${
                 activeTab === "builder"
-                  ? "bg-blue-600 text-white"
-                  : "text-gray-400 hover:text-white"
+                  ? "bg-white/20 text-white shadow-lg backdrop-blur-sm"
+                  : "text-gray-300 hover:text-white hover:bg-white/5"
               }`}
             >
               Builder
             </button>
             <button
               onClick={() => setActiveTab("saved")}
-              className={`px-6 py-2 rounded-md font-medium transition duration-200 ${
+              className={`px-6 py-2.5 rounded-xl font-medium transition-all duration-200 ${
                 activeTab === "saved"
-                  ? "bg-blue-600 text-white"
-                  : "text-gray-400 hover:text-white"
+                  ? "bg-white/20 text-white shadow-lg backdrop-blur-sm"
+                  : "text-gray-300 hover:text-white hover:bg-white/5"
               }`}
             >
               Saved ({savedItems.length})
@@ -98,6 +105,7 @@ function UTMBuilderPage() {
             savedItems={savedItems}
             onDelete={handleDelete}
             onDeleteAll={handleDeleteAll}
+            onDeleteSelected={handleDeleteSelected}
             onUpdateComment={handleUpdateComment}
           />
         )}

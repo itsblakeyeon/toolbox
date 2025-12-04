@@ -423,7 +423,7 @@ function BuilderTab({ onSave }) {
         {/* 위험 액션 (좌측 끝) */}
         <button
           onClick={handleReset}
-          className="border border-gray-600 text-gray-400 hover:bg-gray-800 hover:text-gray-300 px-4 py-2 rounded font-medium transition duration-200"
+          className="glass-button text-gray-300 hover:text-white px-4 py-2 rounded-xl font-medium shadow-lg"
           title="모든 데이터 삭제"
         >
           전체 초기화
@@ -435,19 +435,21 @@ function BuilderTab({ onSave }) {
         {/* 선택 관련 */}
         <button
           onClick={toggleSelectAll}
-          className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded font-medium transition duration-200"
+          className="glass-button glass-button-purple text-white px-4 py-2 rounded-xl font-medium shadow-lg"
         >
           {allSelected ? "전체 해제" : "전체 선택"}
         </button>
 
         {/* 구분선 */}
-        <div className="h-8 w-px bg-gray-600"></div>
+        <div className="h-8 w-px bg-white/10"></div>
 
         {/* 선택된 항목 액션 */}
         <button
           onClick={saveSelected}
           disabled={!hasSelectedRows}
-          className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white px-4 py-2 rounded font-medium transition duration-200"
+          className={`glass-button text-white px-4 py-2 rounded-xl font-medium shadow-lg ${
+            !hasSelectedRows ? 'opacity-50 cursor-not-allowed' : ''
+          }`}
           title="선택 항목 저장 (⌘S)"
         >
           선택 저장
@@ -456,7 +458,9 @@ function BuilderTab({ onSave }) {
         <button
           onClick={deleteSelectedRows}
           disabled={!hasSelectedRows}
-          className="bg-red-600 hover:bg-red-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white px-4 py-2 rounded font-medium transition duration-200"
+          className={`glass-button glass-button-red text-white px-4 py-2 rounded-xl font-medium shadow-lg ${
+            !hasSelectedRows ? 'opacity-50 cursor-not-allowed' : ''
+          }`}
           title="선택한 행 삭제 (Delete)"
         >
           선택 삭제
@@ -464,8 +468,8 @@ function BuilderTab({ onSave }) {
       </div>
 
       {/* 테이블 형식 */}
-      <div className="overflow-x-auto border border-gray-700 rounded-lg">
-        <table className="w-full bg-[#16213e]">
+      <div className="overflow-x-auto rounded-2xl glass-strong shadow-2xl">
+        <table className="w-full">
           <BuilderTableHeader
             allSelected={rows.length > 0 && rows.every((row) => row.selected)}
             onToggleSelectAll={toggleSelectAll}
@@ -500,7 +504,7 @@ function BuilderTab({ onSave }) {
         {/* Notion 스타일 행 추가 버튼 */}
         <button
           onClick={addRow}
-          className="w-full mt-2 py-2 text-gray-400 hover:bg-[#1a2642] hover:text-gray-300 transition-colors duration-150 rounded flex items-center justify-center"
+          className="w-full py-3 text-gray-300 hover:text-white hover:bg-white/5 transition-all duration-200 rounded-b-2xl flex items-center justify-center border-t border-white/10"
           aria-label="행 추가"
         >
           <svg

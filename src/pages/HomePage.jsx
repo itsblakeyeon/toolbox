@@ -2,14 +2,14 @@ import { Link } from "react-router-dom";
 
 function HomePage() {
   return (
-    <div className="min-h-screen bg-[#1a1a2e]">
-      <div className="container mx-auto px-4 py-16">
+    <div className="min-h-screen relative z-10">
+      <div className="container mx-auto px-4 py-16 relative z-10">
         {/* 헤더 */}
         <div className="text-center mb-16">
-          <h1 className="text-5xl font-bold text-white mb-4">
+          <h1 className="text-5xl font-bold text-white mb-4 drop-shadow-lg">
             Marketing Toolbox
           </h1>
-          <p className="text-xl text-gray-400">
+          <p className="text-xl text-gray-200">
             효율적인 마케팅을 위한 도구 모음
           </p>
         </div>
@@ -19,12 +19,12 @@ function HomePage() {
           {/* UTM Builder 카드 */}
           <Link
             to="/utm-builder"
-            className="bg-[#16213e] p-8 rounded-lg border border-gray-700 hover:border-blue-500 transition-all duration-200 hover:shadow-lg hover:shadow-blue-500/20"
+            className="glass-strong p-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 group"
           >
-            <h3 className="text-2xl font-bold text-white mb-3">
+            <h3 className="text-2xl font-bold text-white mb-3 group-hover:text-gray-300 transition-colors">
               UTM Builder
             </h3>
-            <p className="text-gray-400">
+            <p className="text-gray-200">
               UTM 파라미터를 쉽고 빠르게 생성하고 관리하세요
             </p>
           </Link>

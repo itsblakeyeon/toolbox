@@ -4,7 +4,7 @@
 function UTMRow({ row, onChange }) {
   // 입력 필드 공통 스타일
   const inputClass =
-    "w-full bg-[#0f1419] text-white px-3 py-2 rounded border border-gray-700 focus:border-blue-500 focus:outline-none";
+    "w-full bg-[#0f1419] text-white px-3 py-2 rounded border border-gray-700 focus:border-white/30 focus:outline-none";
 
   return (
     <div className="grid grid-cols-6 gap-4 mb-4">

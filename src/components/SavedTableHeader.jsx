@@ -1,8 +1,8 @@
 /**
- * UTM Builder 테이블의 헤더 컴포넌트
+ * Saved Tab 테이블의 헤더 컴포넌트
  * 전체 선택 체크박스와 컬럼 헤더를 렌더링
  */
-function BuilderTableHeader({ allSelected, onToggleSelectAll }) {
+function SavedTableHeader({ allSelected, onToggleSelectAll }) {
   return (
     <thead className="bg-white/5 backdrop-blur-sm">
       <tr>
@@ -16,9 +16,6 @@ function BuilderTableHeader({ allSelected, onToggleSelectAll }) {
         </th>
         <th className="px-3 py-3 text-center text-gray-200 text-xs font-semibold border-r border-b border-white/10">
           #
-        </th>
-        <th className="px-3 py-3 text-left text-gray-200 text-xs font-semibold border-r border-b border-white/10">
-          Base URL
         </th>
         <th className="px-3 py-3 text-left text-gray-200 text-xs font-semibold border-r border-b border-white/10">
           Source
@@ -38,6 +35,12 @@ function BuilderTableHeader({ allSelected, onToggleSelectAll }) {
         <th className="px-3 py-3 text-left text-gray-200 text-xs font-semibold border-r border-b border-white/10">
           생성된 URL
         </th>
+        <th className="px-3 py-3 text-left text-gray-200 text-xs font-semibold border-r border-b border-white/10">
+          코멘트
+        </th>
+        <th className="px-3 py-3 text-left text-gray-200 text-xs font-semibold border-r border-b border-white/10">
+          저장 시간
+        </th>
         <th className="px-3 py-3 text-center text-gray-200 text-xs font-semibold border-b border-white/10">
           액션
         </th>
@@ -46,4 +49,5 @@ function BuilderTableHeader({ allSelected, onToggleSelectAll }) {
   );
 }
 
-export default BuilderTableHeader;
+export default SavedTableHeader;
+

@@ -42,24 +42,24 @@ function UTMTableRow({
       data-row-index={index}
       tabIndex={isRowSelected ? 0 : -1}
       onKeyDown={(e) => isRowSelected && onRowSelectionKeyDown(e, index)}
-      className={`${
+      className={`transition-all duration-200 ${
         isRowSelected
-          ? "bg-blue-900 ring-2 ring-blue-500"
-          : "hover:bg-[#1a2642]"
+          ? "bg-white/10 ring-2 ring-white/20 backdrop-blur-sm"
+          : "hover:bg-white/5"
       }`}
     >
       {/* 체크박스 */}
-      <td className="px-3 py-2 text-center border-r border-b border-gray-700">
+      <td className="px-3 py-2 text-center border-r border-b border-white/10">
         <input
           type="checkbox"
           checked={row.selected || false}
           onChange={() => onToggleSelect(row.id)}
-          className="w-4 h-4 cursor-pointer"
+          className="w-4 h-4 cursor-pointer accent-gray-500"
         />
       </td>
 
       {/* 행 번호 */}
-      <td className="px-3 py-2 text-center text-gray-300 text-sm border-r border-b border-gray-700">
+      <td className="px-3 py-2 text-center text-gray-200 text-sm border-r border-b border-white/10">
         {index + 1}
       </td>
 
@@ -110,9 +110,9 @@ function UTMTableRow({
         return (
           <td
             key={field.key}
-            className={`px-2 py-1 border-r border-b border-gray-700 ${
+            className={`px-2 py-1 border-r border-b border-white/10 ${
               isCellSelected || isCellInRange
-                ? "bg-blue-800 ring-1 ring-blue-400"
+                ? "bg-white/10 ring-1 ring-white/20 backdrop-blur-sm"
                 : ""
             }`}
           >
@@ -143,13 +143,13 @@ function UTMTableRow({
 
       {/* 생성된 URL */}
       <td
-        className={`px-2 py-1 border-r border-b border-gray-700 ${
-          isRowSelected ? "" : "bg-[#0f1626]"
+        className={`px-2 py-1 border-r border-b border-white/10 ${
+          isRowSelected ? "" : "bg-white/2"
         }`}
       >
         <div
           className={`text-sm max-w-sm overflow-x-auto whitespace-nowrap ${
-            generatedUrl ? "text-blue-400" : "text-gray-500 italic"
+            generatedUrl ? "text-gray-200" : "text-gray-500 italic"
           }`}
         >
           {generatedUrl || ""}
@@ -157,12 +157,12 @@ function UTMTableRow({
       </td>
 
       {/* 액션 버튼 */}
-      <td className="px-2 py-1 border-b border-gray-700">
+      <td className="px-2 py-1 border-b border-white/10">
         <div className="flex gap-2 justify-center">
           <button
             onClick={() => onCopyUrl(row)}
             disabled={!generatedUrl}
-            className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white px-3 py-1 rounded text-sm font-medium transition duration-200"
+            className="glass-button text-white px-3 py-1 rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             title="URL 복사"
           >
             복사
@@ -170,7 +170,7 @@ function UTMTableRow({
           <button
             onClick={() => onTestUrl(row)}
             disabled={!generatedUrl}
-            className="bg-green-600 hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white px-3 py-1 rounded text-sm font-medium transition duration-200"
+            className="glass-button glass-button-green text-white px-3 py-1 rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             title="새 탭에서 열기"
           >
             테스트

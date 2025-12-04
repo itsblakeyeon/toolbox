@@ -8,4 +8,15 @@ export default {
     extend: {},
   },
   plugins: [],
+  safelist: [
+    'glass',
+    'glass-strong',
+    'glass-subtle',
+    'glass-button',
+    'glass-button-purple',
+    'glass-button-green',
+    'glass-button-red',
+    'glass-button-gray',
+    'glass-input',
+  ],
 }

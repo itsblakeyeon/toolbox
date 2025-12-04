@@ -1,57 +1,97 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "../hooks/useToast";
 import Toast from "./Toast";
+import SavedTableHeader from "./SavedTableHeader";
+import SavedTableRow from "./SavedTableRow";
 
-function SavedTab({ savedItems, onDelete, onDeleteAll, onUpdateComment }) {
-  const [editingId, setEditingId] = useState(null);
+function SavedTab({ savedItems, onDelete, onDeleteAll, onDeleteSelected, onUpdateComment }) {
+  const [editingCommentId, setEditingCommentId] = useState(null);
   const [editComment, setEditComment] = useState("");
+  
+  // 행 선택 상태 관리 (각 항목에 selected 속성 추가)
+  const [itemsWithSelection, setItemsWithSelection] = useState(() =>
+    savedItems.map((item) => ({ ...item, selected: false }))
+  );
+
+  // savedItems가 변경되면 itemsWithSelection도 업데이트
+  useEffect(() => {
+    setItemsWithSelection((prev) => {
+      const prevMap = new Map(prev.map((item) => [item.id, item.selected]));
+      return savedItems.map((item) => ({
+        ...item,
+        selected: prevMap.get(item.id) || false,
+      }));
+    });
+  }, [savedItems]);
 
   // 토스트 알림 훅
   const { toast, showToast, hideToast } = useToast();
 
   // 코멘트 편집 시작
-  const startEdit = (item) => {
-    setEditingId(item.id);
-    setEditComment(item.comment);
+  const startEditComment = (item) => {
+    setEditingCommentId(item.id);
+    setEditComment(item.comment || "");
   };
 
   // 코멘트 저장
   const saveComment = (id) => {
     onUpdateComment(id, editComment);
-    setEditingId(null);
+    setEditingCommentId(null);
     setEditComment("");
   };
 
   // 코멘트 편집 취소
-  const cancelEdit = () => {
-    setEditingId(null);
+  const cancelEditComment = () => {
+    setEditingCommentId(null);
     setEditComment("");
   };
 
-  // URL 복사
-  const copyUrl = (url) => {
-    navigator.clipboard.writeText(url);
-    showToast("URL이 클립보드에 복사되었습니다!", "success");
+  // 코멘트 편집 값 업데이트
+  const updateEditComment = (value) => {
+    setEditComment(value);
   };
 
-  // 날짜 포맷팅
-  const formatDate = (timestamp) => {
-    const date = new Date(timestamp);
-    return date.toLocaleString("ko-KR", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+  // 행 선택 토글
+  const toggleSelect = (id) => {
+    setItemsWithSelection((prev) =>
+      prev.map((item) =>
+        item.id === id ? { ...item, selected: !item.selected } : item
+      )
+    );
   };
+
+  // 전체 선택/해제
+  const toggleSelectAll = () => {
+    const allSelected = itemsWithSelection.every((item) => item.selected);
+    setItemsWithSelection((prev) =>
+      prev.map((item) => ({ ...item, selected: !allSelected }))
+    );
+  };
+
+  // 선택된 항목 일괄 삭제
+  const handleDeleteSelected = () => {
+    const selectedItems = itemsWithSelection.filter((item) => item.selected);
+    if (selectedItems.length === 0) {
+      showToast("삭제할 항목을 선택해주세요!", "warning");
+      return;
+    }
+    onDeleteSelected(selectedItems.map((item) => item.id));
+  };
+
+  // 전체 선택 여부 확인
+  const allSelected =
+    itemsWithSelection.length > 0 &&
+    itemsWithSelection.every((item) => item.selected);
+
+  // 선택된 행이 있는지 확인
+  const hasSelectedRows = itemsWithSelection.some((item) => item.selected);
 
   if (savedItems.length === 0) {
     return (
-      <div className="max-w-6xl mx-auto p-6">
-        <div className="bg-[#16213e] rounded-lg p-12 text-center">
-          <p className="text-gray-400 text-lg">저장된 URL이 없습니다.</p>
-          <p className="text-gray-500 text-sm mt-2">
+      <div className="max-w-full mx-auto p-6">
+        <div className="glass-strong rounded-2xl p-12 text-center shadow-xl">
+          <p className="text-gray-200 text-lg">저장된 URL이 없습니다.</p>
+          <p className="text-gray-400 text-sm mt-2">
             Builder 탭에서 URL을 선택하고 저장해보세요.
           </p>
         </div>
@@ -60,136 +100,62 @@ function SavedTab({ savedItems, onDelete, onDeleteAll, onUpdateComment }) {
   }
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
-      {/* 전체 삭제 버튼 */}
-      <div className="mb-4 flex justify-between items-center">
-        <h2 className="text-xl font-bold text-white">
-          저장된 URL ({savedItems.length}개)
-        </h2>
+    <div className="max-w-full mx-auto p-6">
+      {/* 컨트롤 버튼들 */}
+      <div className="mb-4 flex gap-3 items-center">
+        {/* 우측으로 밀기 */}
+        <div className="flex-1"></div>
+
+        {/* 선택 관련 */}
         <button
-          onClick={onDeleteAll}
-          className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded font-medium transition duration-200"
+          onClick={toggleSelectAll}
+          className="glass-button glass-button-purple text-white px-4 py-2 rounded-xl font-medium shadow-lg"
         >
-          전체 삭제
+          {allSelected ? "전체 해제" : "전체 선택"}
+        </button>
+
+        {/* 구분선 */}
+        <div className="h-8 w-px bg-white/10"></div>
+
+        {/* 선택된 항목 액션 */}
+        <button
+          onClick={handleDeleteSelected}
+          disabled={!hasSelectedRows}
+          className={`glass-button glass-button-red text-white px-4 py-2 rounded-xl font-medium shadow-lg ${
+            !hasSelectedRows ? 'opacity-50 cursor-not-allowed' : ''
+          }`}
+          title="선택한 항목 삭제"
+        >
+          선택 삭제
         </button>
       </div>
 
-      {/* 저장된 항목 리스트 */}
-      <div className="space-y-4">
-        {savedItems.map((item) => (
-          <div
-            key={item.id}
-            className="bg-[#16213e] rounded-lg p-6 border border-gray-700"
-          >
-            {/* 헤더: 캠페인명, 저장 시간 */}
-            <div className="flex justify-between items-start mb-4">
-              <div>
-                <h3 className="text-lg font-bold text-white">
-                  {item.campaignName}
-                </h3>
-                <p className="text-gray-400 text-sm">
-                  {formatDate(item.savedAt)}
-                </p>
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => copyUrl(item.fullUrl)}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm transition duration-200"
-                >
-                  복사
-                </button>
-                <button
-                  onClick={() => onDelete(item.id)}
-                  className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm transition duration-200"
-                >
-                  삭제
-                </button>
-              </div>
-            </div>
-
-            {/* UTM 파라미터 요약 */}
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-4">
-              <div>
-                <p className="text-gray-400 text-xs">Source</p>
-                <p className="text-white text-sm font-medium">
-                  {item.params.source}
-                </p>
-              </div>
-              <div>
-                <p className="text-gray-400 text-xs">Medium</p>
-                <p className="text-white text-sm font-medium">
-                  {item.params.medium}
-                </p>
-              </div>
-              <div>
-                <p className="text-gray-400 text-xs">Campaign</p>
-                <p className="text-white text-sm font-medium">
-                  {item.params.campaign}
-                </p>
-              </div>
-              {item.params.term && (
-                <div>
-                  <p className="text-gray-400 text-xs">Term</p>
-                  <p className="text-white text-sm font-medium">
-                    {item.params.term}
-                  </p>
-                </div>
-              )}
-              {item.params.content && (
-                <div>
-                  <p className="text-gray-400 text-xs">Content</p>
-                  <p className="text-white text-sm font-medium">
-                    {item.params.content}
-                  </p>
-                </div>
-              )}
-            </div>
-
-            {/* 생성된 URL */}
-            <div className="mb-4">
-              <p className="text-gray-400 text-xs mb-2">생성된 URL</p>
-              <div className="bg-[#0f1419] text-gray-300 px-4 py-3 rounded border border-gray-700 break-all text-sm">
-                {item.fullUrl}
-              </div>
-            </div>
-
-            {/* 코멘트 (인라인 편집) */}
-            <div>
-              <p className="text-gray-400 text-xs mb-2">코멘트</p>
-              {editingId === item.id ? (
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={editComment}
-                    onChange={(e) => setEditComment(e.target.value)}
-                    placeholder="코멘트를 입력하세요"
-                    className="flex-1 bg-[#0f1419] text-gray-300 px-3 py-2 rounded border border-gray-700 focus:border-blue-500 focus:outline-none text-sm"
-                    autoFocus
-                  />
-                  <button
-                    onClick={() => saveComment(item.id)}
-                    className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded text-sm transition duration-200"
-                  >
-                    저장
-                  </button>
-                  <button
-                    onClick={cancelEdit}
-                    className="bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded text-sm transition duration-200"
-                  >
-                    취소
-                  </button>
-                </div>
-              ) : (
-                <div
-                  onClick={() => startEdit(item)}
-                  className="bg-[#0f1419] text-gray-300 px-4 py-3 rounded border border-gray-700 cursor-pointer hover:border-blue-500 transition duration-200 text-sm"
-                >
-                  {item.comment || "코멘트를 추가하려면 클릭하세요"}
-                </div>
-              )}
-            </div>
-          </div>
-        ))}
+      {/* 테이블 형식 */}
+      <div className="overflow-x-auto rounded-2xl glass-strong shadow-2xl">
+        <table className="w-full">
+          <SavedTableHeader
+            allSelected={allSelected}
+            onToggleSelectAll={toggleSelectAll}
+          />
+          <tbody>
+            {itemsWithSelection.map((item, index) => (
+              <SavedTableRow
+                key={item.id}
+                item={item}
+                index={index}
+                isSelected={item.selected}
+                onToggleSelect={toggleSelect}
+                editingCommentId={editingCommentId}
+                editComment={editComment}
+                onStartEditComment={startEditComment}
+                onSaveComment={saveComment}
+                onCancelEditComment={cancelEditComment}
+                onUpdateEditComment={updateEditComment}
+                onDelete={onDelete}
+              />
+            ))}
+          </tbody>
+        </table>
       </div>
 
       {/* 토스트 알림 */}
