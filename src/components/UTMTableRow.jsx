@@ -3,7 +3,7 @@ import UTMTableInput from "./UTMTableInput";
 import { FIELD_CONFIG } from "../constants";
 
 /**
- * UTM 테이블의 개별 행을 렌더링하는 컴포넌트
+ * Component that renders individual rows in the UTM table
  */
 function UTMTableRow({
   row,
@@ -27,13 +27,13 @@ function UTMTableRow({
 }) {
   const generatedUrl = buildUTMUrl(row);
 
-  // 범위 선택 내에 있는지 확인
+  // Check if within range selection
   const isInRange =
     selectedRange &&
     index >= Math.min(selectedRange.start, selectedRange.end) &&
     index <= Math.max(selectedRange.start, selectedRange.end);
 
-  // 행이 선택되었는지 확인 (단일 선택 또는 범위 선택)
+  // Check if row is selected (single selection or range selection)
   const isRowSelected = selectedRowIndex === index || isInRange;
 
   return (
@@ -48,7 +48,7 @@ function UTMTableRow({
           : "hover:bg-white/5"
       }`}
     >
-      {/* 체크박스 */}
+      {/* Checkbox */}
       <td className="px-3 py-2 text-center border-r border-b border-white/10">
         <input
           type="checkbox"
@@ -58,20 +58,20 @@ function UTMTableRow({
         />
       </td>
 
-      {/* 행 번호 */}
+      {/* Row number */}
       <td className="px-3 py-2 text-center text-gray-200 text-sm border-r border-b border-white/10">
         {index + 1}
       </td>
 
-      {/* 입력 필드들 */}
+      {/* Input fields */}
       {FIELD_CONFIG.map((field) => {
-        // 단일 셀 선택 확인
+        // Check single cell selection
         const isCellSelected =
           selectedCell &&
           selectedCell.rowIndex === index &&
           selectedCell.field === field.key;
 
-        // 셀 범위 선택 내에 있는지 확인
+        // Check if within cell range selection
         const isInCellRange =
           selectedCellRange &&
           index >=
@@ -85,10 +85,14 @@ function UTMTableRow({
               selectedCellRange.end.rowIndex
             );
 
-        // 필드가 범위 내에 있는지 확인
-        const currentFieldIndex = FIELD_CONFIG.findIndex((f) => f.key === field.key);
+        // Check if field is within range
+        const currentFieldIndex = FIELD_CONFIG.findIndex(
+          (f) => f.key === field.key
+        );
         const startFieldIndex = selectedCellRange
-          ? FIELD_CONFIG.findIndex((f) => f.key === selectedCellRange.start.field)
+          ? FIELD_CONFIG.findIndex(
+              (f) => f.key === selectedCellRange.start.field
+            )
           : -1;
         const endFieldIndex = selectedCellRange
           ? FIELD_CONFIG.findIndex((f) => f.key === selectedCellRange.end.field)
@@ -101,7 +105,7 @@ function UTMTableRow({
 
         const isCellInRange = isInCellRange && isFieldInRange;
 
-        // 편집 모드 확인
+        // Check edit mode
         const isEditing =
           editingCell &&
           editingCell.rowIndex === index &&
@@ -126,10 +130,10 @@ function UTMTableRow({
               onFocus={onInputFocus}
               onKeyDown={
                 isEditing
-                  ? onKeyDown  // 편집 모드: 일반 키보드 네비게이션
-                  : (isCellSelected || isCellInRange)
-                    ? (e) => onCellSelectionKeyDown(e, index, field.key)  // 셀 선택 모드
-                    : onKeyDown  // 기본
+                  ? onKeyDown // Edit mode: normal keyboard navigation
+                  : isCellSelected || isCellInRange
+                  ? (e) => onCellSelectionKeyDown(e, index, field.key) // Cell selection mode
+                  : onKeyDown // Default
               }
               onCompositionStart={onCompositionStart}
               onCompositionEnd={onCompositionEnd}
@@ -141,7 +145,7 @@ function UTMTableRow({
         );
       })}
 
-      {/* 생성된 URL */}
+      {/* Generated URL */}
       <td
         className={`px-2 py-1 border-r border-b border-white/10 ${
           isRowSelected ? "" : "bg-white/2"
@@ -156,15 +160,15 @@ function UTMTableRow({
         </div>
       </td>
 
-      {/* 액션 버튼 */}
+      {/* Action buttons */}
       <td className="px-2 py-1 border-b border-white/10">
         <div className="flex gap-2 justify-center">
           <button
             onClick={() => onCopyUrl(row)}
             disabled={!generatedUrl}
             className="glass-button text-white p-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-white/20 transition-colors"
-            title="URL 복사"
-            aria-label="URL 복사"
+            title="Copy URL"
+            aria-label="Copy URL"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -185,8 +189,8 @@ function UTMTableRow({
             onClick={() => onTestUrl(row)}
             disabled={!generatedUrl}
             className="glass-button glass-button-green text-white p-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-white/20 transition-colors"
-            title="새 탭에서 열기"
-            aria-label="새 탭에서 열기"
+            title="Open in new tab"
+            aria-label="Open in new tab"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"

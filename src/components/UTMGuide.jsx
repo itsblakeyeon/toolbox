@@ -1,37 +1,37 @@
 function UTMGuide() {
   return (
     <div className="max-w-6xl mx-auto p-6 mt-12 relative z-10">
-      {/* 구분선 */}
+      {/* Divider */}
       <div className="border-t border-white/10 mb-12"></div>
 
-      {/* 제목 */}
+      {/* Title */}
       <div className="text-center mb-8">
         <h2 className="text-3xl font-bold text-white mb-3 drop-shadow-lg">
-          UTM 파라미터란 무엇인가요?
+          What are UTM Parameters?
         </h2>
         <p className="text-gray-200 text-lg max-w-3xl mx-auto">
-          UTM 파라미터는 마케팅 캠페인의 트래픽 출처를 추적하기 위해 URL에
-          추가하는 태그입니다. 구글 애널리틱스에서 어떤 채널이 가장 효과적인지
-          분석할 수 있습니다.
+          UTM parameters are tags added to URLs to track the traffic source of
+          marketing campaigns. You can analyze which channels are most effective
+          in Google Analytics.
         </p>
       </div>
 
-      {/* 5가지 파라미터 카드 */}
+      {/* 5 Parameter Cards */}
       <div className="grid md:grid-cols-2 gap-6 mb-12">
         {/* utm_source */}
         <div className="glass rounded-2xl p-6 shadow-xl">
           <div className="flex items-start gap-3 mb-3">
             <span className="glass-button glass-button-gray text-white px-3 py-1 rounded-lg text-sm font-semibold">
-              필수
+              Required
             </span>
             <h3 className="text-xl font-bold text-white">utm_source</h3>
           </div>
           <p className="text-gray-200 mb-4">
-            트래픽이 어디에서 왔는지 식별합니다. (광고 플랫폼, 검색엔진,
-            뉴스레터 등)
+            Identifies where traffic comes from. (advertising platform, search
+            engine, newsletter, etc.)
           </p>
           <div className="glass-subtle p-4 rounded-xl">
-            <p className="text-sm text-gray-300 mb-2">예시:</p>
+            <p className="text-sm text-gray-300 mb-2">Examples:</p>
             <code className="text-green-300 text-sm">
               utm_source=google
               <br />
@@ -46,17 +46,18 @@ function UTMGuide() {
         <div className="glass rounded-2xl p-6 shadow-xl">
           <div className="flex items-start gap-3 mb-3">
             <span className="glass-button glass-button-gray text-white px-3 py-1 rounded-lg text-sm font-semibold">
-              필수
+              Required
             </span>
             <h3 className="text-xl font-bold text-white">utm_medium</h3>
           </div>
           <p className="text-gray-200 mb-4">
-            마케팅 매체 유형을 나타냅니다. (유료광고, 이메일, 소셜미디어 등)
+            Indicates the type of marketing medium. (paid advertising, email,
+            social media, etc.)
           </p>
           <div className="glass-subtle p-4 rounded-xl">
-            <p className="text-sm text-gray-300 mb-2">예시:</p>
+            <p className="text-sm text-gray-300 mb-2">Examples:</p>
             <code className="text-green-300 text-sm">
-              utm_medium=cpc (클릭당 과금)
+              utm_medium=cpc (cost per click)
               <br />
               utm_medium=email
               <br />
@@ -69,15 +70,16 @@ function UTMGuide() {
         <div className="glass rounded-2xl p-6 shadow-xl">
           <div className="flex items-start gap-3 mb-3">
             <span className="glass-button glass-button-gray text-white px-3 py-1 rounded-lg text-sm font-semibold">
-              필수
+              Required
             </span>
             <h3 className="text-xl font-bold text-white">utm_campaign</h3>
           </div>
           <p className="text-gray-200 mb-4">
-            특정 캠페인을 식별합니다. (프로모션 이름, 전략적 캠페인 등)
+            Identifies a specific campaign. (promotion name, strategic campaign,
+            etc.)
           </p>
           <div className="glass-subtle p-4 rounded-xl">
-            <p className="text-sm text-gray-300 mb-2">예시:</p>
+            <p className="text-sm text-gray-300 mb-2">Examples:</p>
             <code className="text-green-300 text-sm">
               utm_campaign=spring_sale
               <br />
@@ -92,15 +94,15 @@ function UTMGuide() {
         <div className="glass rounded-2xl p-6 shadow-xl">
           <div className="flex items-start gap-3 mb-3">
             <span className="glass-button glass-button-gray text-white px-3 py-1 rounded-lg text-sm font-semibold">
-              선택
+              Optional
             </span>
             <h3 className="text-xl font-bold text-white">utm_term</h3>
           </div>
           <p className="text-gray-200 mb-4">
-            유료 검색 광고의 키워드를 추적합니다. (Google Ads, Naver 광고 등)
+            Tracks keywords for paid search advertising. (Google Ads, etc.)
           </p>
           <div className="glass-subtle p-4 rounded-xl">
-            <p className="text-sm text-gray-300 mb-2">예시:</p>
+            <p className="text-sm text-gray-300 mb-2">Examples:</p>
             <code className="text-green-300 text-sm">
               utm_term=running+shoes
               <br />
@@ -115,33 +117,34 @@ function UTMGuide() {
         <div className="glass rounded-2xl p-6 shadow-xl md:col-span-2">
           <div className="flex items-start gap-3 mb-3">
             <span className="glass-button glass-button-gray text-white px-3 py-1 rounded-lg text-sm font-semibold">
-              선택
+              Optional
             </span>
             <h3 className="text-xl font-bold text-white">utm_content</h3>
           </div>
           <p className="text-gray-200 mb-4">
-            동일한 광고 내 여러 링크를 구분합니다. (A/B 테스트, 배너 위치 등)
+            Distinguishes multiple links within the same ad. (A/B testing,
+            banner placement, etc.)
           </p>
           <div className="glass-subtle p-4 rounded-xl">
-            <p className="text-sm text-gray-300 mb-2">예시:</p>
+            <p className="text-sm text-gray-300 mb-2">Examples:</p>
             <code className="text-green-300 text-sm">
-              utm_content=banner_ad (배너 광고)
+              utm_content=banner_ad (banner ad)
               <br />
-              utm_content=text_link (텍스트 링크)
+              utm_content=text_link (text link)
               <br />
-              utm_content=header_cta (헤더 CTA 버튼)
+              utm_content=header_cta (header CTA button)
             </code>
           </div>
         </div>
       </div>
 
-      {/* 실제 사용 예시 */}
+      {/* Real-world Usage Example */}
       <div className="glass-strong rounded-2xl p-8 mb-12 shadow-xl">
         <h3 className="text-2xl font-bold text-white mb-4">
-          실제 사용 예시
+          Real-world Usage Example
         </h3>
         <p className="text-gray-200 mb-4">
-          페이스북 광고에서 봄 세일 캠페인을 진행한다면:
+          If you're running a spring sale campaign on Facebook ads:
         </p>
         <div className="glass-subtle p-4 rounded-xl overflow-x-auto">
           <code className="text-gray-200 text-sm break-all">
@@ -149,68 +152,69 @@ function UTMGuide() {
           </code>
         </div>
         <p className="text-gray-300 mt-4 text-sm">
-          → 구글 애널리틱스에서 "페이스북 유료 광고로 유입된 봄 세일 캠페인
-          배너"를 클릭한 방문자 수를 추적할 수 있습니다.
+          → In Google Analytics, you can track the number of visitors who
+          clicked on the "spring sale campaign banner from Facebook paid ads".
         </p>
       </div>
 
-      {/* 베스트 프랙티스 */}
+      {/* Best Practices */}
       <div className="glass-strong rounded-2xl p-8 shadow-xl">
         <h3 className="text-2xl font-bold text-white mb-4">
-          UTM 파라미터 명명 규칙 (Best Practices)
+          UTM Parameter Naming Rules (Best Practices)
         </h3>
         <ul className="space-y-3 text-gray-200">
           <li className="flex items-start gap-3">
             <span className="text-green-300 mt-1">✓</span>
             <span>
-              <strong className="text-white">소문자 사용:</strong> utm_source=Google 대신{" "}
+              <strong className="text-white">Use lowercase:</strong> Use{" "}
               <code className="glass-subtle px-2 py-1 rounded-lg text-green-300">
                 utm_source=google
-              </code>
+              </code>{" "}
+              instead of utm_source=Google
             </span>
           </li>
           <li className="flex items-start gap-3">
             <span className="text-green-300 mt-1">✓</span>
             <span>
-              <strong className="text-white">일관성 유지:</strong> 항상 동일한 명명
-              규칙 사용 (예: facebook vs fb)
+              <strong className="text-white">Maintain consistency:</strong>{" "}
+              Always use the same naming convention (e.g., facebook vs fb)
             </span>
           </li>
           <li className="flex items-start gap-3">
             <span className="text-green-300 mt-1">✓</span>
             <span>
-              <strong className="text-white">언더스코어 사용:</strong> 공백 대신{" "}
+              <strong className="text-white">Use underscores:</strong> Use{" "}
               <code className="glass-subtle px-2 py-1 rounded-lg text-green-300">
                 spring_sale
               </code>{" "}
-              (자동 인코딩됨)
+              instead of spaces (automatically encoded)
             </span>
           </li>
           <li className="flex items-start gap-3">
             <span className="text-green-300 mt-1">✓</span>
             <span>
-              <strong className="text-white">간결하게 작성:</strong> 긴 이름보다는
-              의미 있는 약어 사용
+              <strong className="text-white">Keep it concise:</strong> Use
+              meaningful abbreviations rather than long names
             </span>
           </li>
           <li className="flex items-start gap-3">
             <span className="text-red-300 mt-1">✗</span>
             <span>
-              <strong className="text-white">개인정보 포함 금지:</strong> 이메일,
-              전화번호 등 민감한 정보 넣지 않기
+              <strong className="text-white">No personal information:</strong>{" "}
+              Do not include sensitive information like emails or phone numbers
             </span>
           </li>
         </ul>
       </div>
 
-      {/* 구글 애널리틱스 확인 방법 */}
+      {/* How to Check in Google Analytics */}
       <div className="mt-12 text-center">
         <p className="text-gray-300">
-          생성한 UTM URL은{" "}
+          You can view your UTM URLs in{" "}
           <strong className="text-white">
-            구글 애널리틱스 &gt; 획득 &gt; 캠페인
+            Google Analytics &gt; Acquisition &gt; Campaigns
           </strong>
-          에서 확인할 수 있습니다.
+          .
         </p>
       </div>
     </div>

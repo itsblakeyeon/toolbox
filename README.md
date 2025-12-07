@@ -1,136 +1,140 @@
 # UTM Builder
 
-마케터를 위한 UTM 파라미터 생성 도구
+UTM parameter generator tool for marketers
 
-## 📖 프로젝트 소개
+## 📖 Project Overview
 
-다크 테마의 UTM URL 생성기입니다. 마케팅 캠페인 추적을 위한 UTM 파라미터를 쉽고 빠르게 만들 수 있습니다.
+A dark-themed UTM URL generator. Easily and quickly create UTM parameters for marketing campaign tracking.
 
-- 🌐 **라이브 데모**: [utm-builder.vercel.app](https://utm-builder.vercel.app)
-- 📊 **Google Analytics 추적 활성화**
+- 🌐 **Live Demo**: [utm-builder.vercel.app](https://utm-builder.vercel.app)
+- 📊 **Google Analytics Tracking Enabled**
 
-## 🎯 학습 프로젝트
+## 🎯 Learning Project
 
-이 프로젝트는 React, Vite, Tailwind CSS를 배우면서 진행하는 학습 프로젝트입니다.
+This project is a learning project built while learning React, Vite, and Tailwind CSS.
 
 ### Documentation
+
 - **Development Guide**: [CLAUDE.md](CLAUDE.md) — Project architecture and implementation guide
 - **[Quick Reference](docs/quick-reference.md)** — Quick concept lookup
 - **[Concepts Dictionary](docs/concepts-dictionary.md)** — Detailed concept explanations
 - **[Changelog](CHANGELOG.md)** — Version history and feature list
 
-## ✨ 현재 구현된 기능
+## ✨ Current Features
 
-### 핵심 기능
-- ✅ 6개 UTM 파라미터 입력 (Base URL, Source, Medium, Campaign, Term, Content)
-- ✅ 실시간 URL 생성 및 미리보기
-- ✅ localStorage 자동 저장 (새로고침 시 데이터 유지)
-- ✅ 여러 행 추가/삭제 (범위 선택 시 일괄 삭제)
-- ✅ 각 행별 독립적인 URL 생성 및 복사
-- ✅ 전체 초기화 기능
+### Core Features
 
-### Notion 스타일 키보드 인터랙션 🎯
-- ✅ **완벽한 셀/행 모드 전환** (ESC로 편집 → 셀 선택 → 행 선택)
-- ✅ 키보드 네비게이션 (방향키로 셀 이동, Enter로 아래 이동)
-- ✅ 셀 범위 선택 및 복사/붙여넣기 (Shift+방향키)
-- ✅ 행 범위 선택 및 복사/붙여넣기
-- ✅ 키보드 단축키 (Cmd/Ctrl+S: 저장, Cmd/Ctrl+A: 전체 선택)
-- ✅ 토스트 알림 시스템 (복사/붙여넣기 성공 알림)
+- ✅ 6 UTM parameter inputs (Base URL, Source, Medium, Campaign, Term, Content)
+- ✅ Real-time URL generation and preview
+- ✅ Automatic localStorage saving (data persists on refresh)
+- ✅ Multiple row add/delete (bulk delete with range selection)
+- ✅ Independent URL generation and copying per row
+- ✅ Full reset functionality
 
-### 기술적 특징
-- ✅ **근본적 문제 해결 중심 설계** (임시방편 X, 명확한 상태 흐름 O)
-- ✅ useEffect 기반 자동 포커스 관리
-- ✅ 관심사 분리 아키텍처 (useCellSelection, useRowSelection, useKeyboardNavigation)
+### Notion-style Keyboard Interactions 🎯
 
-## 🛠️ 기술 스택
+- ✅ **Perfect cell/row mode switching** (ESC: edit → cell selection → row selection)
+- ✅ Keyboard navigation (arrow keys to move cells, Enter to move down)
+- ✅ Cell range selection and copy/paste (Shift+arrow keys)
+- ✅ Row range selection and copy/paste
+- ✅ Keyboard shortcuts (Cmd/Ctrl+S: save, Cmd/Ctrl+A: select all)
+- ✅ Toast notification system (copy/paste success notifications)
+
+### Technical Features
+
+- ✅ **Root cause problem-solving focused design** (no workarounds, clear state flow)
+- ✅ useEffect-based automatic focus management
+- ✅ Separation of concerns architecture (useCellSelection, useRowSelection, useKeyboardNavigation)
+
+## 🛠️ Tech Stack
 
 - React 19.2
 - Vite 6.4
 - Tailwind CSS 3.x
 - localStorage API
 
-## 🚀 시작하기
+## 🚀 Getting Started
 
 ```bash
-# 저장소 클론
+# Clone repository
 git clone https://github.com/itsblakeyeon/utm-builder.git
 cd utm-builder
 
-# 의존성 설치
+# Install dependencies
 npm install
 
-# 개발 서버 실행
+# Run development server
 npm run dev
 ```
 
-브라우저에서 http://localhost:5173 접속
+Open http://localhost:5173 in your browser
 
-## 📦 빌드
+## 📦 Build
 
 ```bash
-# 프로덕션 빌드
+# Production build
 npm run build
 
-# 빌드 결과 미리보기
+# Preview build result
 npm run preview
 ```
 
-## 📁 프로젝트 구조
+## 📁 Project Structure
 
 ```
 src/
 ├── components/
-│   ├── BuilderTab.jsx        # 메인 빌더 화면
-│   ├── UTMTableRow.jsx       # UTM 테이블 행 컴포넌트
-│   ├── UTMTableInput.jsx     # UTM 입력 필드 컴포넌트
-│   ├── BuilderTableHeader.jsx # 테이블 헤더
-│   ├── SavedTab.jsx          # 저장된 URL 관리
-│   ├── UTMGuide.jsx          # UTM 가이드
-│   └── Toast.jsx             # 토스트 알림 컴포넌트
+│   ├── BuilderTab.jsx        # Main builder screen
+│   ├── UTMTableRow.jsx       # UTM table row component
+│   ├── UTMTableInput.jsx     # UTM input field component
+│   ├── BuilderTableHeader.jsx # Table header
+│   ├── SavedTab.jsx          # Saved URL management
+│   ├── UTMGuide.jsx          # UTM guide
+│   └── Toast.jsx             # Toast notification component
 ├── hooks/
-│   ├── useLocalStorage.js    # localStorage 관리 Hook
-│   ├── useKeyboardNavigation.js # 키보드 네비게이션 (기본)
-│   ├── useCellSelection.js   # 셀 선택 및 복붙
-│   ├── useRowSelection.js    # 행 선택 및 복붙
-│   ├── useRowClipboard.js    # 행 복사/붙여넣기
-│   └── useToast.js            # 토스트 알림 Hook
+│   ├── useLocalStorage.js    # localStorage management Hook
+│   ├── useKeyboardNavigation.js # Keyboard navigation (basic)
+│   ├── useCellSelection.js   # Cell selection and copy/paste
+│   ├── useRowSelection.js    # Row selection and copy/paste
+│   ├── useRowClipboard.js    # Row copy/paste
+│   └── useToast.js            # Toast notification Hook
 ├── utils/
-│   ├── urlBuilder.js         # UTM URL 생성 로직
-│   ├── validation.js         # URL 유효성 검사
-│   └── rowFactory.js         # 행 생성 유틸리티
-├── App.jsx                   # 루트 컴포넌트
-└── main.jsx                  # 진입점
+│   ├── urlBuilder.js         # UTM URL generation logic
+│   ├── validation.js         # URL validation
+│   └── rowFactory.js         # Row creation utility
+├── App.jsx                   # Root component
+└── main.jsx                  # Entry point
 ```
 
-## 🎨 주요 기능 설명
+## 🎨 Key Features
 
-### 여러 행 관리
+### Multiple Row Management
 
-- "+ 행 추가" 버튼으로 새로운 UTM URL 생성 행 추가
-- 각 행마다 독립적인 파라미터 입력 및 URL 생성
-- 행별 삭제 기능 (최소 1개 행 유지)
+- Add new UTM URL generation rows with "+ Add Row" button
+- Independent parameter input and URL generation per row
+- Row deletion functionality (minimum 1 row maintained)
 
-### 자동 저장
+### Auto-save
 
-- 모든 입력 값이 자동으로 localStorage에 저장
-- 페이지 새로고침 후에도 데이터 유지
-- 브라우저 종료 후 재방문 시에도 복원
+- All input values automatically saved to localStorage
+- Data persists after page refresh
+- Data restored on revisit after browser close
 
-### URL 유효성 검사
+### URL Validation
 
-- Base URL 형식 검증
-- 잘못된 URL 입력 시 경고 메시지 표시
-- 자동 프로토콜 추가 (https://)
+- Base URL format validation
+- Warning message displayed for invalid URL input
+- Automatic protocol addition (https://)
 
-## 📝 향후 계획
+## 📝 Future Plans
 
-- [ ] 프리셋 시스템 (자주 사용하는 Source+Medium+Campaign 템플릿)
-- [ ] URL 단축 기능 (Bitly API 연동)
-- [ ] QR 코드 생성
-- [ ] 통계 대시보드
-- [ ] 모바일 반응형 디자인 (테이블 → 카드 뷰)
+- [ ] Preset system (frequently used Source+Medium+Campaign templates)
+- [ ] URL shortening feature (Bitly API integration)
+- [ ] QR code generation
+- [ ] Statistics dashboard
+- [ ] Mobile responsive design (table → card view)
 
-## 📄 라이선스
+## 📄 License
 
 ISC
 

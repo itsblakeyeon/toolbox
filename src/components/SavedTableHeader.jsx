@@ -1,6 +1,6 @@
 /**
- * Saved Tab 테이블의 헤더 컴포넌트
- * 전체 선택 체크박스와 컬럼 헤더를 렌더링
+ * Header component for Saved Tab table
+ * Renders select all checkbox and column headers
  */
 function SavedTableHeader({ allSelected, onToggleSelectAll }) {
   return (
@@ -33,10 +33,10 @@ function SavedTableHeader({ allSelected, onToggleSelectAll }) {
           Content
         </th>
         <th className="px-3 py-3 text-left text-gray-200 text-xs font-semibold border-r border-b border-white/10">
-          생성된 URL
+          Generated URL
         </th>
         <th className="px-3 py-3 text-left text-gray-200 text-xs font-semibold border-b border-white/10">
-          코멘트
+          Comment
         </th>
       </tr>
     </thead>
@@ -44,4 +44,3 @@ function SavedTableHeader({ allSelected, onToggleSelectAll }) {
 }
 
 export default SavedTableHeader;
-

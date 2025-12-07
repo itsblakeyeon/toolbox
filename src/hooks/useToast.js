@@ -1,13 +1,13 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback } from "react";
 
 /**
- * 토스트 알림을 관리하는 훅
+ * Hook for managing toast notifications
  * @returns {Object} { toast, showToast }
  */
 export const useToast = () => {
   const [toast, setToast] = useState(null);
 
-  const showToast = useCallback((message, type = 'success') => {
+  const showToast = useCallback((message, type = "success") => {
     setToast({ message, type });
   }, []);
 
@@ -18,6 +18,6 @@ export const useToast = () => {
   return {
     toast,
     showToast,
-    hideToast
+    hideToast,
   };
 };

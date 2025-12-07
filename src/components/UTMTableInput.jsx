@@ -1,10 +1,10 @@
 import { useEffect, useRef } from "react";
 
 /**
- * UTM 테이블의 input 필드 컴포넌트
- * 편집 모드와 셀 선택 모드를 구분하여 렌더링
- * - 편집 모드: input 요소 (커서 있음)
- * - 셀 선택 모드: div 요소 (커서 없음, 키보드 네비게이션 가능)
+ * Input field component for UTM table
+ * Renders differently based on edit mode and cell selection mode
+ * - Edit mode: input element (with cursor)
+ * - Cell selection mode: div element (no cursor, keyboard navigation enabled)
  */
 function UTMTableInput({
   value,
@@ -25,21 +25,21 @@ function UTMTableInput({
 
   const inputRef = useRef(null);
 
-  // 셀 선택 모드일 때 div에 포커스
+  // Focus div when in cell selection mode
   useEffect(() => {
     if (isCellSelected && divRef.current) {
       divRef.current.focus();
     }
   }, [isCellSelected]);
 
-  // 편집 모드일 때 input에 포커스
+  // Focus input when in edit mode
   useEffect(() => {
     if (isEditing && inputRef.current) {
       inputRef.current.focus();
     }
   }, [isEditing]);
 
-  // 셀 선택 모드: div 렌더링 (커서 없음, 포커스 가능)
+  // Cell selection mode: render div (no cursor, focusable)
   if (isCellSelected) {
     return (
       <div
@@ -51,12 +51,15 @@ function UTMTableInput({
         tabIndex={0}
         className="w-full bg-transparent text-gray-200 px-2 py-1 text-sm min-h-[28px] cursor-text focus:outline-none"
       >
-        {value || (rowIndex === 0 && <span className="text-gray-500">{placeholder}</span>)}
+        {value ||
+          (rowIndex === 0 && (
+            <span className="text-gray-500">{placeholder}</span>
+          ))}
       </div>
     );
   }
 
-  // 편집 모드 또는 기본: input 렌더링 (커서 있음)
+  // Edit mode or default: render input (with cursor)
   return (
     <input
       ref={inputRef}

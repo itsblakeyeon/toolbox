@@ -1,5 +1,5 @@
 /**
- * Saved Tab 테이블의 개별 행을 렌더링하는 컴포넌트
+ * Component that renders individual rows in the Saved Tab table
  */
 function SavedTableRow({
   item,
@@ -18,10 +18,12 @@ function SavedTableRow({
   return (
     <tr
       className={`transition-all duration-200 ${
-        isSelected ? "bg-white/10 ring-2 ring-white/20 backdrop-blur-sm" : "hover:bg-white/5"
+        isSelected
+          ? "bg-white/10 ring-2 ring-white/20 backdrop-blur-sm"
+          : "hover:bg-white/5"
       }`}
     >
-      {/* 체크박스 */}
+      {/* Checkbox */}
       <td className="px-3 py-2 text-center border-r border-b border-white/10">
         <input
           type="checkbox"
@@ -31,7 +33,7 @@ function SavedTableRow({
         />
       </td>
 
-      {/* 행 번호 */}
+      {/* Row number */}
       <td className="px-3 py-2 text-center text-gray-200 text-sm border-r border-b border-white/10">
         {index + 1}
       </td>
@@ -53,9 +55,7 @@ function SavedTableRow({
 
       {/* Term */}
       <td className="px-2 py-1 border-r border-b border-white/10">
-        <div className="text-sm text-gray-300">
-          {item.params.term || "-"}
-        </div>
+        <div className="text-sm text-gray-300">{item.params.term || "-"}</div>
       </td>
 
       {/* Content */}
@@ -65,7 +65,7 @@ function SavedTableRow({
         </div>
       </td>
 
-      {/* 생성된 URL */}
+      {/* Generated URL */}
       <td
         className={`px-2 py-1 border-r border-b border-white/10 ${
           isSelected ? "" : "bg-white/2"
@@ -76,7 +76,7 @@ function SavedTableRow({
         </div>
       </td>
 
-      {/* 코멘트 */}
+      {/* Comment */}
       <td className="px-2 py-1 border-b border-white/10">
         {isEditing ? (
           <div className="flex gap-1">
@@ -84,7 +84,7 @@ function SavedTableRow({
               type="text"
               value={editComment}
               onChange={(e) => onUpdateEditComment(e.target.value)}
-              placeholder="코멘트를 입력하세요"
+              placeholder="Enter comment"
               className="flex-1 glass-input text-gray-200 px-2 py-1 rounded-lg text-sm"
               autoFocus
               onKeyDown={(e) => {
@@ -98,16 +98,16 @@ function SavedTableRow({
             <button
               onClick={() => onSaveComment(item.id)}
               className="glass-button glass-button-green text-white px-2 py-1 rounded-lg text-xs"
-              title="저장 (Enter)"
+              title="Save (Enter)"
             >
-              저장
+              Save
             </button>
             <button
               onClick={onCancelEditComment}
               className="glass-button text-white px-2 py-1 rounded-lg text-xs"
-              title="취소 (Esc)"
+              title="Cancel (Esc)"
             >
-              취소
+              Cancel
             </button>
           </div>
         ) : (
@@ -115,7 +115,7 @@ function SavedTableRow({
             onClick={() => onStartEditComment(item)}
             className="glass-subtle text-gray-200 px-2 py-1 rounded-lg cursor-pointer hover:border-white/30 transition duration-200 text-sm min-h-[28px] flex items-center"
           >
-            {item.comment || "코멘트를 추가하려면 클릭하세요"}
+            {item.comment || "Click to add comment"}
           </div>
         )}
       </td>
@@ -124,4 +124,3 @@ function SavedTableRow({
 }
 
 export default SavedTableRow;
-

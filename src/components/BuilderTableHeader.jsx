@@ -1,6 +1,6 @@
 /**
- * UTM Builder 테이블의 헤더 컴포넌트
- * 전체 선택 체크박스와 컬럼 헤더를 렌더링
+ * Header component for UTM Builder table
+ * Renders select all checkbox and column headers
  */
 function BuilderTableHeader({ allSelected, onToggleSelectAll }) {
   return (
@@ -36,10 +36,10 @@ function BuilderTableHeader({ allSelected, onToggleSelectAll }) {
           Content
         </th>
         <th className="px-3 py-3 text-left text-gray-200 text-xs font-semibold border-r border-b border-white/10">
-          생성된 URL
+          Generated URL
         </th>
         <th className="px-3 py-3 text-center text-gray-200 text-xs font-semibold border-b border-white/10">
-          액션
+          Actions
         </th>
       </tr>
     </thead>

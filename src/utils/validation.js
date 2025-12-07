@@ -1,22 +1,22 @@
 /**
- * URL의 유효성을 검사합니다
- * @param {string} url - 검사할 URL
+ * Validates a URL
+ * @param {string} url - URL to validate
  * @returns {Object} { valid: boolean, message: string }
  */
 export const validateUrl = (url) => {
-  // 빈 문자열이면 검사하지 않음
+  // Skip validation for empty strings
   if (!url || url.trim() === "") {
     return { valid: true, message: "" };
   }
 
   const trimmedUrl = url.trim();
 
-  // 공백이 포함되어 있으면 오류
+  // Error if URL contains spaces
   if (url !== trimmedUrl || trimmedUrl.includes(" ")) {
-    return { valid: false, message: "URL에 공백이 포함되어 있습니다" };
+    return { valid: false, message: "URL contains spaces" };
   }
 
-  // 프로토콜이 없으면 자동으로 https:// 추가
+  // Automatically add https:// if protocol is missing
   let fullUrl = trimmedUrl;
   if (!trimmedUrl.startsWith("http://") && !trimmedUrl.startsWith("https://")) {
     fullUrl = `https://${trimmedUrl}`;
@@ -25,54 +25,54 @@ export const validateUrl = (url) => {
   try {
     const urlObj = new URL(fullUrl);
 
-    // 프로토콜 검증 (http 또는 https만 허용)
+    // Validate protocol (only http or https allowed)
     if (urlObj.protocol !== "http:" && urlObj.protocol !== "https:") {
       return {
         valid: false,
-        message: "http:// 또는 https:// 프로토콜만 사용할 수 있습니다",
+        message: "Only http:// or https:// protocols are allowed",
       };
     }
 
-    // 호스트명 검증 (도메인이 비어있으면 안됨)
+    // Validate hostname (domain cannot be empty)
     if (!urlObj.hostname || urlObj.hostname.length === 0) {
-      return { valid: false, message: "올바른 도메인을 입력해주세요" };
+      return { valid: false, message: "Please enter a valid domain" };
     }
 
-    // 호스트명에 최소한 하나의 점이 있어야 함 (도메인 형식)
+    // Hostname must contain at least one dot (domain format)
     if (!urlObj.hostname.includes(".")) {
       return {
         valid: false,
-        message: "올바른 도메인 형식이 아닙니다 (예: example.com)",
+        message: "Invalid domain format (e.g., example.com)",
       };
     }
 
-    // 호스트명이 너무 짧으면 오류 (최소 3자: a.b)
+    // Error if hostname is too short (minimum 3 characters: a.b)
     if (urlObj.hostname.length < 3) {
-      return { valid: false, message: "도메인이 너무 짧습니다" };
+      return { valid: false, message: "Domain is too short" };
     }
 
-    // 특수문자 검증 (일부 특수문자는 URL 인코딩되어야 함)
+    // Validate special characters (some special characters must be URL encoded)
     const invalidChars = /[<>"`]/;
     if (invalidChars.test(trimmedUrl)) {
       return {
         valid: false,
-        message: "URL에 사용할 수 없는 문자가 포함되어 있습니다",
+        message: "URL contains invalid characters",
       };
     }
 
     return { valid: true, message: "" };
   } catch (error) {
-    // 더 구체적인 오류 메시지
+    // More specific error message
     if (error.message.includes("Invalid URL")) {
-      return { valid: false, message: "올바른 URL 형식이 아닙니다" };
+      return { valid: false, message: "Invalid URL format" };
     }
-    return { valid: false, message: "URL 형식이 올바르지 않습니다" };
+    return { valid: false, message: "URL format is incorrect" };
   }
 };
 
 /**
- * 필수 필드들이 모두 채워졌는지 검사합니다
- * @param {Object} row - 행 데이터
+ * Checks if all required fields are filled
+ * @param {Object} row - Row data
  * @returns {boolean}
  */
 export const hasRequiredFields = (row) => {

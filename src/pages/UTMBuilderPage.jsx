@@ -9,33 +9,35 @@ function UTMBuilderPage() {
   const [activeTab, setActiveTab] = useState("builder");
   const [savedItems, setSavedItems] = useLocalStorage("utmSavedItems", []);
 
-  // 저장 항목 추가
+  // Add saved items
   const handleSave = (newItems) => {
     setSavedItems([...savedItems, ...newItems]);
   };
 
-  // 개별 삭제
+  // Delete individual item
   const handleDelete = (id) => {
-    if (confirm("정말 삭제하시겠습니까?")) {
+    if (confirm("Are you sure you want to delete this item?")) {
       setSavedItems(savedItems.filter((item) => item.id !== id));
     }
   };
 
-  // 전체 삭제
+  // Delete all
   const handleDeleteAll = () => {
-    if (confirm("모든 저장된 URL을 삭제하시겠습니까?")) {
+    if (confirm("Are you sure you want to delete all saved URLs?")) {
       setSavedItems([]);
     }
   };
 
-  // 선택 항목 일괄 삭제
+  // Delete selected items in bulk
   const handleDeleteSelected = (ids) => {
-    if (confirm(`선택한 ${ids.length}개 항목을 삭제하시겠습니까?`)) {
+    if (
+      confirm(`Are you sure you want to delete ${ids.length} selected item(s)?`)
+    ) {
       setSavedItems(savedItems.filter((item) => !ids.includes(item.id)));
     }
   };
 
-  // 코멘트 업데이트
+  // Update comment
   const handleUpdateComment = (id, comment) => {
     setSavedItems(
       savedItems.map((item) => (item.id === id ? { ...item, comment } : item))
@@ -66,12 +68,14 @@ function UTMBuilderPage() {
             Home
           </Link>
           <div className="text-center">
-            <h1 className="text-4xl font-bold text-white mb-2 drop-shadow-lg">UTM Builder</h1>
+            <h1 className="text-4xl font-bold text-white mb-2 drop-shadow-lg">
+              UTM Builder
+            </h1>
             <p className="text-gray-300">UTM builder for everyone</p>
           </div>
         </div>
 
-        {/* 탭 전환 UI */}
+        {/* Tab switching UI */}
         <div className="flex justify-center mb-6">
           <div className="inline-flex rounded-2xl glass-strong p-1.5 shadow-xl">
             <button
@@ -97,7 +101,7 @@ function UTMBuilderPage() {
           </div>
         </div>
 
-        {/* 탭 콘텐츠 */}
+        {/* Tab content */}
         {activeTab === "builder" ? (
           <BuilderTab onSave={handleSave} />
         ) : (

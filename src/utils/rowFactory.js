@@ -1,9 +1,9 @@
-// 고유 ID 생성을 위한 카운터
+// Counter for generating unique IDs
 let idCounter = 0;
 
 /**
- * 고유한 ID를 생성합니다 (타임스탬프 + 카운터)
- * @returns {string} 고유한 ID
+ * Generates a unique ID (timestamp + counter)
+ * @returns {string} Unique ID
  */
 const generateUniqueId = () => {
   idCounter++;
@@ -11,8 +11,8 @@ const generateUniqueId = () => {
 };
 
 /**
- * 빈 행 객체를 생성합니다
- * @returns {Object} 새로운 빈 행 객체
+ * Creates an empty row object
+ * @returns {Object} New empty row object
  */
 export const createEmptyRow = () => ({
   id: generateUniqueId(),
@@ -26,9 +26,9 @@ export const createEmptyRow = () => ({
 });
 
 /**
- * 복사된 행을 기반으로 새 행을 생성합니다
- * @param {Object} copiedRow - 복사된 행 데이터
- * @returns {Object} 새로운 ID를 가진 행 객체
+ * Creates a new row based on a copied row
+ * @param {Object} copiedRow - Copied row data
+ * @returns {Object} Row object with new ID
  */
 export const createRowFromCopied = (copiedRow) => ({
   ...copiedRow,

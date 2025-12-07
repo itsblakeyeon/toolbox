@@ -11,13 +11,13 @@ import KeyboardShortcuts from "./KeyboardShortcuts";
 import { STORAGE_KEYS, DEBOUNCE_DELAY, FIELDS } from "../constants";
 
 function BuilderTab({ onSave }) {
-  // 편집 가능한 필드 목록 (키보드 네비게이션용)
+  // List of editable fields (for keyboard navigation)
   const fields = FIELDS;
 
-  // 토스트 알림 훅
+  // Toast notification hook
   const { toast, showToast, hideToast } = useToast();
 
-  // rows + 커서 상태를 함께 관리하는 히스토리 상태
+  // History state managing rows + cursor state together
   const [historyState, setHistoryState, { undo, redo, canUndo, canRedo }] =
     useHistory(
       () => {
@@ -35,7 +35,7 @@ function BuilderTab({ onSave }) {
 
         if (saved) {
           try {
-            // saved가 rows 배열이라고 가정하고 historyState 형태로 래핑
+            // Assume saved is a rows array and wrap in historyState format
             const parsed = JSON.parse(saved);
             if (Array.isArray(parsed)) {
               return {
@@ -43,7 +43,7 @@ function BuilderTab({ onSave }) {
                 editingCell: null,
               };
             }
-            // 혹시 나중에 구조가 바뀌었을 경우 안전하게 처리
+            // Safely handle if structure changes later
             return {
               rows: initialRows,
               editingCell: null,
@@ -68,7 +68,7 @@ function BuilderTab({ onSave }) {
 
   const { rows, editingCell } = historyState;
 
-  // rows만 부분 업데이트하기 위한 헬퍼
+  // Helper to partially update only rows
   const setRows = (updaterOrValue, preserveEditingCell = true) => {
     setHistoryState((prev) => {
       const prevRows = prev.rows;
@@ -84,7 +84,7 @@ function BuilderTab({ onSave }) {
     });
   };
 
-  // editingCell만 부분 업데이트하기 위한 헬퍼
+  // Helper to partially update only editingCell
   const setEditingCell = (nextEditingCell) => {
     setHistoryState((prev) => ({
       ...prev,
@@ -92,45 +92,45 @@ function BuilderTab({ onSave }) {
     }));
   };
 
-  // 행 삭제 (키보드 네비게이션 훅에서 사용하기 위해 먼저 정의)
+  // Delete row (defined first for use in keyboard navigation hook)
   const deleteRow = (id) => {
     if (rows.length === 1) {
-      showToast("최소 1개의 행은 필요합니다!", "warning");
+      showToast("At least 1 row is required!", "warning");
       return;
     }
-    
-    // 삭제할 행의 인덱스 찾기
+
+    // Find index of row to delete
     const index = rows.findIndex((row) => row.id === id);
     if (index === -1) return;
-    
-    // 삭제 후 남을 행들
+
+    // Rows remaining after deletion
     const rowsAfter = rows.filter((row) => row.id !== id);
-    
-    // 포커스할 행 인덱스 계산 (삭제 후 상태)
+
+    // Calculate target row index for focus (after deletion state)
     let targetIndex;
     if (index > 0) {
-      // 위 행 선택
+      // Select row above
       targetIndex = index - 1;
     } else {
-      // 첫 행 삭제 시 새 첫 행 선택
+      // Select new first row when first row is deleted
       targetIndex = 0;
     }
-    
-    // 마지막 행 삭제 시 보정
+
+    // Adjust when last row is deleted
     if (targetIndex >= rowsAfter.length) {
       targetIndex = rowsAfter.length - 1;
     }
-    
-    // 히스토리 기록을 위해 두 단계로 나눔:
-    // 1. editingCell을 삭제될 행으로 설정 (히스토리 기록: 삭제 전 상태, 삭제될 행에 포커스)
-    //    → Undo 시 이 상태로 돌아가면 삭제될 행에 포커스가 있음
+
+    // Split into two steps for history recording:
+    // 1. Set editingCell to row to be deleted (history: pre-deletion state, focus on row to be deleted)
+    //    → When undoing, returns to this state with focus on row to be deleted
     setHistoryState((prev) => ({
       ...prev,
       editingCell: { rowIndex: index, field: fields[0] },
     }));
-    
-    // 2. 행 삭제 및 위 행으로 포커스 (히스토리 기록: 삭제 후 상태, 위 행에 포커스)
-    //    → Redo 시 이 상태로 돌아가면 행이 삭제되고 위 행에 포커스가 있음
+
+    // 2. Delete row and focus on row above (history: post-deletion state, focus on row above)
+    //    → When redoing, returns to this state with row deleted and focus on row above
     setHistoryState((prev) => ({
       ...prev,
       rows: rowsAfter,
@@ -138,7 +138,7 @@ function BuilderTab({ onSave }) {
     }));
   };
 
-  // 체크박스 토글
+  // Toggle checkbox
   const toggleSelect = (id) => {
     setRows((prevRows) =>
       prevRows.map((row) =>
@@ -147,7 +147,7 @@ function BuilderTab({ onSave }) {
     );
   };
 
-  // 키보드 네비게이션 훅
+  // Keyboard navigation hook
   const {
     selectedCell,
     selectedCellRange,
@@ -174,7 +174,7 @@ function BuilderTab({ onSave }) {
     setEditingCell
   );
 
-  // Undo/Redo 래퍼 함수 (선택 상태 클리어)
+  // Undo/Redo wrapper functions (clear selection state)
   const handleUndo = useCallback(() => {
     undo();
     setSelectedCell(null);
@@ -203,14 +203,14 @@ function BuilderTab({ onSave }) {
     setSelectedRange,
   ]);
 
-  // 셀 클릭 핸들러 (편집 모드로 전환)
+  // Cell click handler (switch to edit mode)
   const handleCellClick = (rowIndex, field) => {
     setEditingCell({ rowIndex, field });
   };
 
-  // 입력 필드 값 변경 핸들러
+  // Input field value change handler
   const handleChange = (id, field, value) => {
-    // baseUrl 필드일 때 프로토콜이 없으면 자동으로 https:// 추가
+    // Automatically add https:// if protocol is missing for baseUrl field
     let processedValue = value;
     if (
       field === "baseUrl" &&
@@ -218,7 +218,7 @@ function BuilderTab({ onSave }) {
       !value.startsWith("http://") &&
       !value.startsWith("https://")
     ) {
-      // 프로토콜이 없고, 공백이 아닌 경우에만 https:// 추가
+      // Only add https:// if protocol is missing and value is not empty
       const trimmedValue = value.trim();
       if (
         trimmedValue &&
@@ -229,7 +229,7 @@ function BuilderTab({ onSave }) {
       }
     }
 
-    // IME 조합 중에는 히스토리는 그대로 두고 값만 업데이트
+    // During IME composition, keep history unchanged and only update value
     setRows((prevRows) =>
       prevRows.map((row) =>
         row.id === id ? { ...row, [field]: processedValue } : row
@@ -237,10 +237,10 @@ function BuilderTab({ onSave }) {
     );
   };
 
-  // 행 추가
+  // Add row
   const addRow = () => {
     const newRow = createEmptyRow();
-    // 새 행 추가 후, 새 행의 첫 번째 필드로 커서 이동할 수 있도록 editingCell 초기화
+    // After adding new row, initialize editingCell to move cursor to first field of new row
     setHistoryState((prev) => {
       const nextRows = [...prev.rows, newRow];
       return {
@@ -251,12 +251,12 @@ function BuilderTab({ onSave }) {
     });
   };
 
-  // 모든 필드 초기화
+  // Reset all fields
   const handleReset = () => {
     setRows([createEmptyRow()]);
   };
 
-  // 전체 선택/해제
+  // Select/deselect all
   const toggleSelectAll = () => {
     const allSelected = rows.every((row) => row.selected);
     setRows((prevRows) =>
@@ -264,12 +264,12 @@ function BuilderTab({ onSave }) {
     );
   };
 
-  // 선택 항목 저장
+  // Save selected items
   const saveSelected = () => {
     const selectedRows = rows.filter((row) => row.selected);
 
     if (selectedRows.length === 0) {
-      showToast("저장할 항목을 선택해주세요!", "warning");
+      showToast("Please select items to save!", "warning");
       return;
     }
 
@@ -296,62 +296,62 @@ function BuilderTab({ onSave }) {
       .filter(Boolean);
 
     if (savedItems.length === 0) {
-      showToast("URL이 없는 항목은 저장할 수 없습니다!", "warning");
+      showToast("Items without URLs cannot be saved!", "warning");
       return;
     }
 
     onSave(savedItems);
 
-    // 일부만 저장된 경우 알림
+    // Notify if only some items were saved
     if (savedItems.length < selectedRows.length) {
       const skippedCount = selectedRows.length - savedItems.length;
       showToast(
-        `${savedItems.length}개 항목이 저장되었습니다. (${skippedCount}개 항목은 URL이 없어 제외됨)`,
+        `${savedItems.length} item(s) saved. (${skippedCount} item(s) excluded due to missing URL)`,
         "success"
       );
     } else {
-      showToast(`${savedItems.length}개 항목이 저장되었습니다!`, "success");
+      showToast(`${savedItems.length} item(s) saved!`, "success");
     }
   };
 
-  // 특정 행의 URL 복사
+  // Copy URL of specific row
   const copyUrl = (row) => {
     const url = buildUTMUrl(row);
     if (url) {
       navigator.clipboard.writeText(url);
-      showToast("URL이 클립보드에 복사되었습니다!", "success");
+      showToast("URL copied to clipboard!", "success");
     }
   };
 
-  // 특정 행의 URL을 새 탭에서 열기
+  // Open URL of specific row in new tab
   const openUrlInNewTab = (row) => {
     const url = buildUTMUrl(row);
     if (url) {
       window.open(url, "_blank", "noopener,noreferrer");
-      showToast("새 탭에서 열었습니다!", "success");
+      showToast("Opened in new tab!", "success");
     }
   };
 
-  // 선택된 행 일괄 삭제
+  // Delete selected rows in bulk
   const deleteSelectedRows = () => {
     const selectedRows = rows.filter((row) => row.selected);
 
     if (selectedRows.length === 0) {
-      showToast("삭제할 행을 선택해주세요!", "warning");
+      showToast("Please select rows to delete!", "warning");
       return;
     }
 
     if (rows.length === selectedRows.length) {
-      showToast("최소 1개의 행은 필요합니다!", "warning");
+      showToast("At least 1 row is required!", "warning");
       return;
     }
 
     const remainingRows = rows.filter((row) => !row.selected);
     setRows(remainingRows);
-    showToast(`${selectedRows.length}개 행이 삭제되었습니다!`, "success");
+    showToast(`${selectedRows.length} row(s) deleted!`, "success");
   };
 
-  // localStorage에 자동 저장 (디바운스)
+  // Auto-save to localStorage (debounced)
   useEffect(() => {
     const timer = setTimeout(() => {
       localStorage.setItem(STORAGE_KEYS.ROWS, JSON.stringify(rows));
@@ -360,7 +360,7 @@ function BuilderTab({ onSave }) {
     return () => clearTimeout(timer);
   }, [rows]);
 
-  // editingCell 변경 시 해당 셀로 포커스 이동 (노션/구글 시트 스타일 Undo/Redo용)
+  // Move focus to cell when editingCell changes (Notion/Google Sheets style Undo/Redo)
   useEffect(() => {
     if (!editingCell) return;
     const { rowIndex, field } = editingCell;
@@ -371,14 +371,14 @@ function BuilderTab({ onSave }) {
       const input = document.querySelector(selector);
       if (input) {
         input.focus();
-        // 커서를 텍스트 끝으로 이동
+        // Move cursor to end of text
         const length = input.value?.length ?? 0;
         input.setSelectionRange(length, length);
       }
     });
   }, [editingCell]);
 
-  // 키보드 단축키 (Cmd+Z Undo, Cmd+Shift+Z Redo, Cmd+S 저장)
+  // Keyboard shortcuts (Cmd+Z Undo, Cmd+Shift+Z Redo, Cmd+S Save)
   useEffect(() => {
     const handleKeyDown = (e) => {
       // Cmd+Z: Undo
@@ -401,7 +401,7 @@ function BuilderTab({ onSave }) {
         return;
       }
 
-      // Cmd+S: 선택 항목 저장
+      // Cmd+S: Save selected items
       if ((e.metaKey || e.ctrlKey) && e.key === "s") {
         e.preventDefault();
         e.stopPropagation();
@@ -413,62 +413,62 @@ function BuilderTab({ onSave }) {
     return () => window.removeEventListener("keydown", handleKeyDown, true);
   }, [canUndo, canRedo, handleUndo, handleRedo, saveSelected]);
 
-  // 선택된 행이 있는지 확인
+  // Check if any rows are selected
   const hasSelectedRows = rows.some((row) => row.selected);
   const allSelected = rows.length > 0 && rows.every((row) => row.selected);
 
   return (
     <div className="max-w-full mx-auto p-6">
-      {/* 컨트롤 버튼들 */}
+      {/* Control buttons */}
       <div className="mb-4 flex gap-3 items-center">
-        {/* 위험 액션 (좌측 끝) */}
+        {/* Dangerous action (left side) */}
         <button
           onClick={handleReset}
           className="glass-button text-gray-300 hover:text-white px-4 py-2 rounded-xl font-medium shadow-lg"
-          title="모든 데이터 삭제"
+          title="Delete all data"
         >
-          전체 초기화
+          Reset All
         </button>
 
-        {/* 우측으로 밀기 */}
+        {/* Push to right */}
         <div className="flex-1"></div>
 
-        {/* 선택 관련 */}
+        {/* Selection related */}
         <button
           onClick={toggleSelectAll}
           className="glass-button glass-button-purple text-white px-4 py-2 rounded-xl font-medium shadow-lg"
         >
-          {allSelected ? "전체 해제" : "전체 선택"}
+          {allSelected ? "Deselect All" : "Select All"}
         </button>
 
-        {/* 구분선 */}
+        {/* Divider */}
         <div className="h-8 w-px bg-white/10"></div>
 
-        {/* 선택된 항목 액션 */}
+        {/* Selected items actions */}
         <button
           onClick={saveSelected}
           disabled={!hasSelectedRows}
           className={`glass-button text-white px-4 py-2 rounded-xl font-medium shadow-lg ${
-            !hasSelectedRows ? 'opacity-50 cursor-not-allowed' : ''
+            !hasSelectedRows ? "opacity-50 cursor-not-allowed" : ""
           }`}
-          title="선택 항목 저장 (⌘S)"
+          title="Save selected items (⌘S)"
         >
-          선택 저장
+          Save Selected
         </button>
 
         <button
           onClick={deleteSelectedRows}
           disabled={!hasSelectedRows}
           className={`glass-button glass-button-red text-white px-4 py-2 rounded-xl font-medium shadow-lg ${
-            !hasSelectedRows ? 'opacity-50 cursor-not-allowed' : ''
+            !hasSelectedRows ? "opacity-50 cursor-not-allowed" : ""
           }`}
-          title="선택한 행 삭제 (Delete)"
+          title="Delete selected rows (Delete)"
         >
-          선택 삭제
+          Delete Selected
         </button>
       </div>
 
-      {/* 테이블 형식 */}
+      {/* Table format */}
       <div className="overflow-x-auto rounded-2xl glass-strong shadow-2xl">
         <table className="w-full">
           <BuilderTableHeader
@@ -502,11 +502,11 @@ function BuilderTab({ onSave }) {
           </tbody>
         </table>
 
-        {/* Notion 스타일 행 추가 버튼 */}
+        {/* Notion style add row button */}
         <button
           onClick={addRow}
           className="w-full py-3 text-gray-300 hover:text-white hover:bg-white/5 transition-all duration-200 rounded-b-2xl flex items-center justify-center border-t border-white/10"
-          aria-label="행 추가"
+          aria-label="Add row"
         >
           <svg
             className="w-4 h-4"
@@ -525,39 +525,39 @@ function BuilderTab({ onSave }) {
         </button>
       </div>
 
-      {/* 키보드 단축키 안내 */}
+      {/* Keyboard shortcuts guide */}
       <KeyboardShortcuts
         shortcuts={[
           {
-            category: "편집",
+            category: "Edit",
             items: [
-              { key: "⌘/Ctrl + Z", description: "실행 취소" },
-              { key: "⌘/Ctrl + Shift + Z", description: "다시 실행" },
-              { key: "⌘/Ctrl + C", description: "행 복사" },
-              { key: "⌘/Ctrl + V", description: "행 붙여넣기" },
+              { key: "⌘/Ctrl + Z", description: "Undo" },
+              { key: "⌘/Ctrl + Shift + Z", description: "Redo" },
+              { key: "⌘/Ctrl + C", description: "Copy row" },
+              { key: "⌘/Ctrl + V", description: "Paste row" },
             ],
           },
           {
-            category: "네비게이션",
+            category: "Navigation",
             items: [
-              { key: "← → ↑ ↓", description: "셀 이동" },
-              { key: "Enter", description: "아래 행으로 이동" },
-              { key: "ESC", description: "모드 전환" },
+              { key: "← → ↑ ↓", description: "Move cells" },
+              { key: "Enter", description: "Move to row below" },
+              { key: "ESC", description: "Switch mode" },
             ],
           },
           {
-            category: "선택 및 작업",
+            category: "Selection & Actions",
             items: [
-              { key: "Shift + 방향키", description: "범위 선택" },
-              { key: "Space", description: "체크박스 선택/해제" },
-              { key: "Delete", description: "선택된 행 삭제" },
-              { key: "⌘/Ctrl + S", description: "선택 항목 저장" },
+              { key: "Shift + Arrow keys", description: "Range selection" },
+              { key: "Space", description: "Toggle checkbox" },
+              { key: "Delete", description: "Delete selected rows" },
+              { key: "⌘/Ctrl + S", description: "Save selected items" },
             ],
           },
         ]}
       />
 
-      {/* 토스트 알림 */}
+      {/* Toast notifications */}
       {toast && (
         <Toast message={toast.message} type={toast.type} onClose={hideToast} />
       )}

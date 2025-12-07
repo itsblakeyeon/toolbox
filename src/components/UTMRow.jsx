@@ -1,8 +1,8 @@
 /**
- * UTM 파라미터 입력 행 컴포넌트
+ * UTM parameter input row component
  */
 function UTMRow({ row, onChange }) {
-  // 입력 필드 공통 스타일
+  // Common style for input fields
   const inputClass =
     "w-full bg-[#0f1419] text-white px-3 py-2 rounded border border-gray-700 focus:border-white/30 focus:outline-none";
 
