@@ -1,9 +1,21 @@
 import { Link } from "react-router-dom";
+import SEO from "../components/SEO";
+
 
 function HomePage() {
   return (
     <div className="min-h-screen relative z-10">
       <div className="container mx-auto px-4 py-16 relative z-10">
+        <SEO
+          title="Toolbox"
+          description="Free online tools including UTM Builder. Simple, fast, and no-login required."
+          structuredData={{
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            "name": "UTM Builder Toolbox",
+            "url": "https://utm-builder.vercel.app/"
+          }}
+        />
         {/* Header */}
         <div className="text-center mb-16">
           <h1 className="text-5xl font-bold text-white mb-4 drop-shadow-lg">
