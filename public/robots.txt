@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://utm-builder.vercel.app/sitemap.xml
+Sitemap: https://toolbox.itsblakeyeon.xyz/sitemap.xml
