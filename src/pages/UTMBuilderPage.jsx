@@ -1,7 +1,5 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import SEO from "../components/SEO";
-
 import BuilderTab from "../components/BuilderTab";
 import SavedTab from "../components/SavedTab";
 import UTMGuide from "../components/UTMGuide";
@@ -48,48 +46,6 @@ function UTMBuilderPage() {
 
   return (
     <div className="min-h-screen relative z-10">
-      <SEO
-        title="Free UTM Builder & Generator"
-        description="Easily create UTM parameters for your marketing campaigns. Includes a guide on how to use utm_source, utm_medium, and more."
-        canonicalUrl="https://utm-builder.vercel.app/utm-builder"
-        structuredData={{
-          "@context": "https://schema.org",
-          "@graph": [
-            {
-              "@type": "SoftwareApplication",
-              "name": "UTM Builder",
-              "applicationCategory": "BusinessApplication",
-              "operatingSystem": "Web",
-              "offers": {
-                "@type": "Offer",
-                "price": "0",
-                "priceCurrency": "USD"
-              }
-            },
-            {
-              "@type": "FAQPage",
-              "mainEntity": [
-                {
-                  "@type": "Question",
-                  "name": "What is utm_source?",
-                  "acceptedAnswer": {
-                    "@type": "Answer",
-                    "text": "Identifies where traffic comes from, such as a search engine (google), newsletter, or other referral."
-                  }
-                },
-                {
-                  "@type": "Question",
-                  "name": "What is utm_medium?",
-                  "acceptedAnswer": {
-                    "@type": "Answer",
-                    "text": "Indicates the type of marketing medium, like cpc (cost per click), email, or social."
-                  }
-                }
-              ]
-            }
-          ]
-        }}
-      />
       <div className="container mx-auto py-8 relative z-10">
         <div className="mb-8">
           <Link
@@ -124,19 +80,21 @@ function UTMBuilderPage() {
           <div className="inline-flex rounded-2xl glass-strong p-1.5 shadow-xl">
             <button
               onClick={() => setActiveTab("builder")}
-              className={`px-6 py-2.5 rounded-xl font-medium transition-all duration-200 ${activeTab === "builder"
+              className={`px-6 py-2.5 rounded-xl font-medium transition-all duration-200 ${
+                activeTab === "builder"
                   ? "bg-white/20 text-white shadow-lg backdrop-blur-sm"
                   : "text-gray-300 hover:text-white hover:bg-white/5"
-                }`}
+              }`}
             >
               Builder
             </button>
             <button
               onClick={() => setActiveTab("saved")}
-              className={`px-6 py-2.5 rounded-xl font-medium transition-all duration-200 ${activeTab === "saved"
+              className={`px-6 py-2.5 rounded-xl font-medium transition-all duration-200 ${
+                activeTab === "saved"
                   ? "bg-white/20 text-white shadow-lg backdrop-blur-sm"
                   : "text-gray-300 hover:text-white hover:bg-white/5"
-                }`}
+              }`}
             >
               Saved ({savedItems.length})
             </button>
