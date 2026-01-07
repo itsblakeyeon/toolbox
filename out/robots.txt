@@ -1,4 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://toolbox.itsblakeyeon.xyz/sitemap.xml
