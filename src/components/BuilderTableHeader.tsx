@@ -1,0 +1,56 @@
+interface BuilderTableHeaderProps {
+  allSelected: boolean;
+  onToggleSelectAll: () => void;
+}
+
+/**
+ * Header component for UTM Builder table
+ */
+function BuilderTableHeader({
+  allSelected,
+  onToggleSelectAll,
+}: BuilderTableHeaderProps) {
+  return (
+    <thead className="bg-white/5 backdrop-blur-sm">
+      <tr>
+        <th className="px-3 py-3 text-center text-gray-200 text-xs font-semibold border-r border-b border-white/10">
+          <input
+            type="checkbox"
+            onChange={onToggleSelectAll}
+            checked={allSelected}
+            className="w-4 h-4 cursor-pointer accent-gray-500"
+          />
+        </th>
+        <th className="px-3 py-3 text-center text-gray-200 text-xs font-semibold border-r border-b border-white/10">
+          #
+        </th>
+        <th className="px-3 py-3 text-left text-gray-200 text-xs font-semibold border-r border-b border-white/10">
+          Base URL
+        </th>
+        <th className="px-3 py-3 text-left text-gray-200 text-xs font-semibold border-r border-b border-white/10">
+          Source
+        </th>
+        <th className="px-3 py-3 text-left text-gray-200 text-xs font-semibold border-r border-b border-white/10">
+          Medium
+        </th>
+        <th className="px-3 py-3 text-left text-gray-200 text-xs font-semibold border-r border-b border-white/10">
+          Campaign
+        </th>
+        <th className="px-3 py-3 text-left text-gray-200 text-xs font-semibold border-r border-b border-white/10">
+          Term
+        </th>
+        <th className="px-3 py-3 text-left text-gray-200 text-xs font-semibold border-r border-b border-white/10">
+          Content
+        </th>
+        <th className="px-3 py-3 text-left text-gray-200 text-xs font-semibold border-r border-b border-white/10">
+          Generated URL
+        </th>
+        <th className="px-3 py-3 text-center text-gray-200 text-xs font-semibold border-b border-white/10">
+          Actions
+        </th>
+      </tr>
+    </thead>
+  );
+}
+
+export default BuilderTableHeader;

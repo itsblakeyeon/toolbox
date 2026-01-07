@@ -1,0 +1,143 @@
+"use client";
+
+import type { SavedItemWithSelection } from "@/types";
+
+interface SavedTableRowProps {
+  item: SavedItemWithSelection;
+  index: number;
+  isSelected: boolean;
+  onToggleSelect: (id: number) => void;
+  editingCommentId: number | null;
+  editComment: string;
+  onStartEditComment: (item: SavedItemWithSelection) => void;
+  onSaveComment: (id: number) => void;
+  onCancelEditComment: () => void;
+  onUpdateEditComment: (value: string) => void;
+}
+
+/**
+ * Component that renders individual rows in the Saved Tab table
+ */
+function SavedTableRow({
+  item,
+  index,
+  isSelected,
+  onToggleSelect,
+  editingCommentId,
+  editComment,
+  onStartEditComment,
+  onSaveComment,
+  onCancelEditComment,
+  onUpdateEditComment,
+}: SavedTableRowProps) {
+  const isEditing = editingCommentId === item.id;
+
+  return (
+    <tr
+      className={`transition-all duration-200 ${
+        isSelected
+          ? "bg-white/10 ring-2 ring-white/20 backdrop-blur-sm"
+          : "hover:bg-white/5"
+      }`}
+    >
+      {/* Checkbox */}
+      <td className="px-3 py-2 text-center border-r border-b border-white/10">
+        <input
+          type="checkbox"
+          checked={isSelected || false}
+          onChange={() => onToggleSelect(item.id)}
+          className="w-4 h-4 cursor-pointer accent-gray-500"
+        />
+      </td>
+
+      {/* Row number */}
+      <td className="px-3 py-2 text-center text-gray-200 text-sm border-r border-b border-white/10">
+        {index + 1}
+      </td>
+
+      {/* Source */}
+      <td className="px-2 py-1 border-r border-b border-white/10">
+        <div className="text-sm text-white">{item.params.source || "-"}</div>
+      </td>
+
+      {/* Medium */}
+      <td className="px-2 py-1 border-r border-b border-white/10">
+        <div className="text-sm text-white">{item.params.medium || "-"}</div>
+      </td>
+
+      {/* Campaign */}
+      <td className="px-2 py-1 border-r border-b border-white/10">
+        <div className="text-sm text-white">{item.params.campaign || "-"}</div>
+      </td>
+
+      {/* Term */}
+      <td className="px-2 py-1 border-r border-b border-white/10">
+        <div className="text-sm text-gray-300">{item.params.term || "-"}</div>
+      </td>
+
+      {/* Content */}
+      <td className="px-2 py-1 border-r border-b border-white/10">
+        <div className="text-sm text-gray-300">
+          {item.params.content || "-"}
+        </div>
+      </td>
+
+      {/* Generated URL */}
+      <td
+        className={`px-2 py-1 border-r border-b border-white/10 ${
+          isSelected ? "" : "bg-white/2"
+        }`}
+      >
+        <div className="text-sm max-w-sm overflow-x-auto whitespace-nowrap text-gray-200">
+          {item.fullUrl || ""}
+        </div>
+      </td>
+
+      {/* Comment */}
+      <td className="px-2 py-1 border-b border-white/10">
+        {isEditing ? (
+          <div className="flex gap-1">
+            <input
+              type="text"
+              value={editComment}
+              onChange={(e) => onUpdateEditComment(e.target.value)}
+              placeholder="Enter comment"
+              className="flex-1 glass-input text-gray-200 px-2 py-1 rounded-lg text-sm"
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  onSaveComment(item.id);
+                } else if (e.key === "Escape") {
+                  onCancelEditComment();
+                }
+              }}
+            />
+            <button
+              onClick={() => onSaveComment(item.id)}
+              className="glass-button glass-button-green text-white px-2 py-1 rounded-lg text-xs"
+              title="Save (Enter)"
+            >
+              Save
+            </button>
+            <button
+              onClick={onCancelEditComment}
+              className="glass-button text-white px-2 py-1 rounded-lg text-xs"
+              title="Cancel (Esc)"
+            >
+              Cancel
+            </button>
+          </div>
+        ) : (
+          <div
+            onClick={() => onStartEditComment(item)}
+            className="glass-subtle text-gray-200 px-2 py-1 rounded-lg cursor-pointer hover:border-white/30 transition duration-200 text-sm min-h-[28px] flex items-center"
+          >
+            {item.comment || "Click to add comment"}
+          </div>
+        )}
+      </td>
+    </tr>
+  );
+}
+
+export default SavedTableRow;
