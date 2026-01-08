@@ -441,7 +441,7 @@ function BuilderTab({ onSave }: BuilderTabProps) {
 
       {/* Table */}
       <div className="overflow-x-auto rounded-2xl glass-strong shadow-2xl">
-        <table className="w-full">
+        <table className="w-full table-fixed">
           <BuilderTableHeader
             allSelected={rows.length > 0 && rows.every((row) => row.selected)}
             onToggleSelectAll={toggleSelectAll}

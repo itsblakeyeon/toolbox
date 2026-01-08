@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, KeyboardEvent } from "react";
+import { useEffect, useRef } from "react";
 import type { UTMField } from "@/types";
 
 interface UTMTableInputProps {
@@ -88,7 +88,7 @@ function UTMTableInput({
       data-row-index={rowIndex}
       data-field={field}
       placeholder={rowIndex === 0 ? placeholder : ""}
-      className="w-full glass-input text-gray-200 px-2 py-1 text-sm rounded"
+      className="w-full bg-transparent text-gray-200 px-2 py-1 text-sm outline-none border-none"
     />
   );
 }

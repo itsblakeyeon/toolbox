@@ -20,20 +20,6 @@ export default function UTMBuilderClient() {
     setSavedItems([...savedItems, ...newItems]);
   };
 
-  // Delete individual item
-  const handleDelete = (id: number) => {
-    if (confirm("Are you sure you want to delete this item?")) {
-      setSavedItems(savedItems.filter((item) => item.id !== id));
-    }
-  };
-
-  // Delete all
-  const handleDeleteAll = () => {
-    if (confirm("Are you sure you want to delete all saved URLs?")) {
-      setSavedItems([]);
-    }
-  };
-
   // Delete selected items in bulk
   const handleDeleteSelected = (ids: number[]) => {
     if (
@@ -113,8 +99,6 @@ export default function UTMBuilderClient() {
         ) : (
           <SavedTab
             savedItems={savedItems}
-            onDelete={handleDelete}
-            onDeleteAll={handleDeleteAll}
             onDeleteSelected={handleDeleteSelected}
             onUpdateComment={handleUpdateComment}
           />

@@ -7,12 +7,7 @@ interface SavedTableRowProps {
   index: number;
   isSelected: boolean;
   onToggleSelect: (id: number) => void;
-  editingCommentId: number | null;
-  editComment: string;
-  onStartEditComment: (item: SavedItemWithSelection) => void;
-  onSaveComment: (id: number) => void;
-  onCancelEditComment: () => void;
-  onUpdateEditComment: (value: string) => void;
+  onUpdateComment: (id: number, comment: string) => void;
 }
 
 /**
@@ -23,21 +18,14 @@ function SavedTableRow({
   index,
   isSelected,
   onToggleSelect,
-  editingCommentId,
-  editComment,
-  onStartEditComment,
-  onSaveComment,
-  onCancelEditComment,
-  onUpdateEditComment,
+  onUpdateComment,
 }: SavedTableRowProps) {
-  const isEditing = editingCommentId === item.id;
-
   return (
     <tr
       className={`transition-all duration-200 ${
         isSelected
-          ? "bg-white/10 ring-2 ring-white/20 backdrop-blur-sm"
-          : "hover:bg-white/5"
+          ? "outline outline-2 outline-white/20"
+          : ""
       }`}
     >
       {/* Checkbox */}
@@ -93,48 +81,24 @@ function SavedTableRow({
         </div>
       </td>
 
-      {/* Comment */}
-      <td className="px-2 py-1 border-b border-white/10">
-        {isEditing ? (
-          <div className="flex gap-1">
-            <input
-              type="text"
-              value={editComment}
-              onChange={(e) => onUpdateEditComment(e.target.value)}
-              placeholder="Enter comment"
-              className="flex-1 glass-input text-gray-200 px-2 py-1 rounded-lg text-sm"
-              autoFocus
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  onSaveComment(item.id);
-                } else if (e.key === "Escape") {
-                  onCancelEditComment();
-                }
-              }}
-            />
-            <button
-              onClick={() => onSaveComment(item.id)}
-              className="glass-button glass-button-green text-white px-2 py-1 rounded-lg text-xs"
-              title="Save (Enter)"
-            >
-              Save
-            </button>
-            <button
-              onClick={onCancelEditComment}
-              className="glass-button text-white px-2 py-1 rounded-lg text-xs"
-              title="Cancel (Esc)"
-            >
-              Cancel
-            </button>
-          </div>
-        ) : (
-          <div
-            onClick={() => onStartEditComment(item)}
-            className="glass-subtle text-gray-200 px-2 py-1 rounded-lg cursor-pointer hover:border-white/30 transition duration-200 text-sm min-h-[28px] flex items-center"
-          >
-            {item.comment || "Click to add comment"}
-          </div>
-        )}
+      {/* Comment - 바로 입력 가능, 자동 저장 */}
+      <td className="px-2 py-1 border-b border-white/10 bg-white/[0.08] focus-within:border-2 focus-within:border-white/20">
+        <input
+          type="text"
+          defaultValue={item.comment || ""}
+          placeholder="Add comment..."
+          className="w-full bg-transparent text-gray-200 px-2 py-1 text-sm outline-none border-none"
+          onBlur={(e) => {
+            if (e.target.value !== item.comment) {
+              onUpdateComment(item.id, e.target.value);
+            }
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.currentTarget.blur();
+            }
+          }}
+        />
       </td>
     </tr>
   );

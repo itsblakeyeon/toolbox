@@ -13,7 +13,8 @@ function BuilderTableHeader({
   return (
     <thead className="bg-white/5 backdrop-blur-sm">
       <tr>
-        <th className="px-3 py-3 text-center text-gray-200 text-xs font-semibold border-r border-b border-white/10">
+        {/* Checkbox: 40px */}
+        <th className="w-10 px-3 py-3 text-center text-gray-200 text-xs font-semibold border-r border-b border-white/10">
           <input
             type="checkbox"
             onChange={onToggleSelectAll}
@@ -21,31 +22,40 @@ function BuilderTableHeader({
             className="w-4 h-4 cursor-pointer accent-gray-500"
           />
         </th>
-        <th className="px-3 py-3 text-center text-gray-200 text-xs font-semibold border-r border-b border-white/10">
+        {/* Row number: 40px */}
+        <th className="w-10 px-3 py-3 text-center text-gray-200 text-xs font-semibold border-r border-b border-white/10">
           #
         </th>
-        <th className="px-3 py-3 text-left text-gray-200 text-xs font-semibold border-r border-b border-white/10">
+        {/* Base URL: 200px */}
+        <th className="w-[200px] px-3 py-3 text-left text-gray-200 text-xs font-semibold border-r border-b border-white/10">
           Base URL
         </th>
-        <th className="px-3 py-3 text-left text-gray-200 text-xs font-semibold border-r border-b border-white/10">
+        {/* Source: 100px */}
+        <th className="w-[100px] px-3 py-3 text-left text-gray-200 text-xs font-semibold border-r border-b border-white/10">
           Source
         </th>
-        <th className="px-3 py-3 text-left text-gray-200 text-xs font-semibold border-r border-b border-white/10">
+        {/* Medium: 100px */}
+        <th className="w-[100px] px-3 py-3 text-left text-gray-200 text-xs font-semibold border-r border-b border-white/10">
           Medium
         </th>
-        <th className="px-3 py-3 text-left text-gray-200 text-xs font-semibold border-r border-b border-white/10">
+        {/* Campaign: 100px */}
+        <th className="w-[100px] px-3 py-3 text-left text-gray-200 text-xs font-semibold border-r border-b border-white/10">
           Campaign
         </th>
-        <th className="px-3 py-3 text-left text-gray-200 text-xs font-semibold border-r border-b border-white/10">
+        {/* Term: 100px */}
+        <th className="w-[100px] px-3 py-3 text-left text-gray-200 text-xs font-semibold border-r border-b border-white/10">
           Term
         </th>
-        <th className="px-3 py-3 text-left text-gray-200 text-xs font-semibold border-r border-b border-white/10">
+        {/* Content: 100px */}
+        <th className="w-[100px] px-3 py-3 text-left text-gray-200 text-xs font-semibold border-r border-b border-white/10">
           Content
         </th>
+        {/* Generated URL: flexible, takes remaining space */}
         <th className="px-3 py-3 text-left text-gray-200 text-xs font-semibold border-r border-b border-white/10">
           Generated URL
         </th>
-        <th className="px-3 py-3 text-center text-gray-200 text-xs font-semibold border-b border-white/10">
+        {/* Actions: 100px */}
+        <th className="w-[100px] px-3 py-3 text-center text-gray-200 text-xs font-semibold border-b border-white/10">
           Actions
         </th>
       </tr>

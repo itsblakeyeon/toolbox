@@ -9,22 +9,15 @@ import type { SavedItem, SavedItemWithSelection } from "@/types";
 
 interface SavedTabProps {
   savedItems: SavedItem[];
-  onDelete: (id: number) => void;
-  onDeleteAll: () => void;
   onDeleteSelected: (ids: number[]) => void;
   onUpdateComment: (id: number, comment: string) => void;
 }
 
 function SavedTab({
   savedItems,
-  onDelete,
-  onDeleteAll,
   onDeleteSelected,
   onUpdateComment,
 }: SavedTabProps) {
-  const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
-  const [editComment, setEditComment] = useState("");
-
   const [itemsWithSelection, setItemsWithSelection] = useState<
     SavedItemWithSelection[]
   >(() => savedItems.map((item) => ({ ...item, selected: false })));
@@ -40,26 +33,6 @@ function SavedTab({
   }, [savedItems]);
 
   const { toast, showToast, hideToast } = useToast();
-
-  const startEditComment = (item: SavedItemWithSelection) => {
-    setEditingCommentId(item.id);
-    setEditComment(item.comment || "");
-  };
-
-  const saveComment = (id: number) => {
-    onUpdateComment(id, editComment);
-    setEditingCommentId(null);
-    setEditComment("");
-  };
-
-  const cancelEditComment = () => {
-    setEditingCommentId(null);
-    setEditComment("");
-  };
-
-  const updateEditComment = (value: string) => {
-    setEditComment(value);
-  };
 
   const toggleSelect = (id: number) => {
     setItemsWithSelection((prev) =>
@@ -146,12 +119,7 @@ function SavedTab({
                 index={index}
                 isSelected={item.selected}
                 onToggleSelect={toggleSelect}
-                editingCommentId={editingCommentId}
-                editComment={editComment}
-                onStartEditComment={startEditComment}
-                onSaveComment={saveComment}
-                onCancelEditComment={cancelEditComment}
-                onUpdateEditComment={updateEditComment}
+                onUpdateComment={onUpdateComment}
               />
             ))}
           </tbody>

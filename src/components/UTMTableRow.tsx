@@ -62,8 +62,28 @@ function UTMTableRow({
     index >= Math.min(selectedRange.start, selectedRange.end) &&
     index <= Math.max(selectedRange.start, selectedRange.end);
 
-  // Check if row is selected
-  const isRowSelected = selectedRowIndex === index || isInRange;
+  // Check if row is selected (single row, not range)
+  const isSingleRowSelected = selectedRowIndex === index && !selectedRange;
+
+  // Range selection border logic
+  const rangeMin = selectedRange ? Math.min(selectedRange.start, selectedRange.end) : -1;
+  const rangeMax = selectedRange ? Math.max(selectedRange.start, selectedRange.end) : -1;
+  const isFirstInRange = selectedRange && index === rangeMin;
+  const isLastInRange = selectedRange && index === rangeMax;
+
+  // Combined selected state for keyboard handling
+  const isRowSelected = isSingleRowSelected || isInRange;
+
+  // Build border classes for range selection
+  const getRangeBorderClass = () => {
+    if (isSingleRowSelected) return "outline outline-2 outline-white/20";
+    if (!isInRange) return "";
+
+    const classes = ["border-l-2 border-r-2 border-white/20"];
+    if (isFirstInRange) classes.push("border-t-2");
+    if (isLastInRange) classes.push("border-b-2");
+    return classes.join(" ");
+  };
 
   return (
     <tr
@@ -73,11 +93,7 @@ function UTMTableRow({
       onKeyDown={(e) =>
         isRowSelected && onRowSelectionKeyDown(e as unknown as KeyboardEvent, index)
       }
-      className={`transition-all duration-200 ${
-        isRowSelected
-          ? "bg-white/10 ring-2 ring-white/20 backdrop-blur-sm"
-          : "hover:bg-white/5"
-      }`}
+      className={`transition-all duration-200 ${getRangeBorderClass()}`}
     >
       {/* Checkbox */}
       <td className="px-3 py-2 text-center border-r border-b border-white/10">
@@ -142,14 +158,59 @@ function UTMTableRow({
           editingCell.rowIndex === index &&
           editingCell.field === field.key;
 
+        // Calculate cell border class
+        const getCellBorderClass = () => {
+          // Editing mode: all 4 sides highlighted
+          if (isEditing) {
+            return "border-2 border-white/20";
+          }
+
+          // If there's a cell range, treat selected cell as part of the range
+          const hasRange = selectedCellRange &&
+            (selectedCellRange.start.rowIndex !== selectedCellRange.end.rowIndex ||
+             selectedCellRange.start.field !== selectedCellRange.end.field);
+
+          // Single cell selected (no range): all 4 sides highlighted
+          if (isCellSelected && !hasRange) {
+            return "border-2 border-white/20";
+          }
+
+          // Not in range: default border
+          if (!isCellInRange || !selectedCellRange) {
+            return "border-r border-b border-white/10";
+          }
+
+          // Cell range: only outer edges of the entire range get highlighted
+          const rowMin = Math.min(selectedCellRange.start.rowIndex, selectedCellRange.end.rowIndex);
+          const rowMax = Math.max(selectedCellRange.start.rowIndex, selectedCellRange.end.rowIndex);
+          const colMin = Math.min(startFieldIndex, endFieldIndex);
+          const colMax = Math.max(startFieldIndex, endFieldIndex);
+
+          const isTopEdge = index === rowMin;
+          const isBottomEdge = index === rowMax;
+          const isLeftEdge = currentFieldIndex === colMin;
+          const isRightEdge = currentFieldIndex === colMax;
+
+          const borders = [];
+
+          // Top edge
+          borders.push(isTopEdge ? "border-t-2 border-t-white/20" : "");
+          // Bottom edge
+          borders.push(isBottomEdge ? "border-b-2 border-b-white/20" : "border-b border-b-white/10");
+          // Left edge
+          borders.push(isLeftEdge ? "border-l-2 border-l-white/20" : "");
+          // Right edge
+          borders.push(isRightEdge ? "border-r-2 border-r-white/20" : "border-r border-r-white/10");
+
+          return borders.filter(Boolean).join(" ");
+        };
+
+        const cellBorderClass = getCellBorderClass();
+
         return (
           <td
             key={field.key}
-            className={`px-2 py-1 border-r border-b border-white/10 ${
-              isCellSelected || isCellInRange
-                ? "bg-white/10 ring-1 ring-white/20 backdrop-blur-sm"
-                : ""
-            }`}
+            className={`px-2 py-1 bg-white/[0.08] ${cellBorderClass}`}
           >
             <UTMTableInput
               value={row[field.key as keyof UTMRow] as string}
