@@ -68,9 +68,9 @@ function SavedTab({
 
   if (savedItems.length === 0) {
     return (
-      <div className="max-w-full mx-auto p-6 text-center">
-        <p className="text-gray-200 text-lg">No saved URLs.</p>
-        <p className="text-gray-400 text-sm mt-2">
+      <div className="max-w-full mx-auto py-16 text-center">
+        <p className="text-[var(--text-secondary)] text-base">No saved URLs.</p>
+        <p className="text-[var(--text-tertiary)] text-sm mt-2">
           Select and save URLs from the Builder tab.
         </p>
       </div>
@@ -78,12 +78,12 @@ function SavedTab({
   }
 
   return (
-    <div className="max-w-full mx-auto p-6">
+    <div className="max-w-full mx-auto">
       {/* Control buttons */}
-      <div className="mb-4 flex gap-3 items-center">
+      <div className="mb-4 flex gap-2 items-center">
         <button
           onClick={onDeleteAll}
-          className="glass-button text-gray-300 hover:text-white px-4 py-2 rounded-xl font-medium shadow-lg"
+          className="notion-button"
           title="Delete all saved items"
         >
           Reset All
@@ -93,19 +93,17 @@ function SavedTab({
 
         <button
           onClick={toggleSelectAll}
-          className="glass-button glass-button-purple text-white px-4 py-2 rounded-xl font-medium shadow-lg"
+          className="notion-button"
         >
           {allSelected ? "Deselect All" : "Select All"}
         </button>
 
-        <div className="h-8 w-px bg-white/10"></div>
+        <div className="h-5 w-px bg-[var(--border-default)]"></div>
 
         <button
           onClick={handleDeleteSelected}
           disabled={!hasSelectedRows}
-          className={`glass-button glass-button-red text-white px-4 py-2 rounded-xl font-medium shadow-lg ${
-            !hasSelectedRows ? "opacity-50 cursor-not-allowed" : ""
-          }`}
+          className="notion-button notion-button-danger"
           title="Delete selected items"
         >
           Delete Selected
@@ -113,8 +111,8 @@ function SavedTab({
       </div>
 
       {/* Table format */}
-      <div className="overflow-x-auto rounded-2xl glass-strong shadow-2xl">
-        <table className="w-full">
+      <div className="notion-table-container overflow-x-auto">
+        <table className="notion-table">
           <SavedTableHeader
             allSelected={allSelected}
             onToggleSelectAll={toggleSelectAll}

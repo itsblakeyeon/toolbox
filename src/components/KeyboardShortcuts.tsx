@@ -1,3 +1,4 @@
+import { memo } from "react";
 import type { ShortcutCategory } from "@/types";
 
 interface KeyboardShortcutsProps {
@@ -9,11 +10,11 @@ interface KeyboardShortcutsProps {
  */
 function KeyboardShortcuts({ shortcuts }: KeyboardShortcutsProps) {
   return (
-    <div className="mt-6 glass-subtle rounded-xl p-4">
+    <div className="mt-6 py-4 border-t border-[var(--border-subtle)]">
       <div className="flex items-center gap-2 mb-4">
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          className="h-4 w-4 text-gray-400"
+          className="h-4 w-4 text-[var(--text-tertiary)]"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -22,26 +23,26 @@ function KeyboardShortcuts({ shortcuts }: KeyboardShortcutsProps) {
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
-            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+            d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707"
           />
         </svg>
-        <h3 className="text-sm font-semibold text-gray-300">
-          Keyboard Shortcuts
+        <h3 className="text-sm font-medium text-[var(--text-secondary)]">
+          Shortcuts
         </h3>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {shortcuts.map((group, groupIndex) => (
-          <div key={groupIndex} className="space-y-2">
-            <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+          <div key={groupIndex}>
+            <h4 className="text-xs font-medium text-[var(--text-tertiary)] uppercase tracking-wider mb-2">
               {group.category}
             </h4>
-            <div className="space-y-1.5">
+            <div className="space-y-1">
               {group.items.map((shortcut, index) => (
                 <div key={index} className="flex items-center gap-2">
-                  <kbd className="glass-button px-2 py-1 rounded text-xs font-mono text-gray-200 min-w-[90px] text-center">
+                  <kbd className="notion-kbd min-w-[72px] text-center">
                     {shortcut.key}
                   </kbd>
-                  <span className="text-xs text-gray-400">
+                  <span className="text-xs text-[var(--text-tertiary)]">
                     {shortcut.description}
                   </span>
                 </div>
@@ -54,4 +55,4 @@ function KeyboardShortcuts({ shortcuts }: KeyboardShortcutsProps) {
   );
 }
 
-export default KeyboardShortcuts;
+export default memo(KeyboardShortcuts);

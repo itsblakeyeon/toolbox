@@ -5,17 +5,17 @@ import BuilderTab from "@/components/BuilderTab";
 import UTMGuide from "@/components/UTMGuide";
 
 export default function UTMBuilderClient() {
-
   return (
-    <div className="min-h-screen relative z-10">
-      <div className="container mx-auto py-8 relative z-10">
-        <div className="mb-8">
+    <div className="min-h-screen">
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        {/* Header */}
+        <header className="mb-8">
           <Link
             href="/"
-            className="inline-flex items-center text-gray-300 hover:text-white transition-colors mb-4 glass px-4 py-2 rounded-xl shadow-lg"
+            className="notion-button mb-6 inline-flex"
           >
             <svg
-              className="w-5 h-5 mr-2"
+              className="w-4 h-4"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -24,22 +24,25 @@ export default function UTMBuilderClient() {
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
-                d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                d="M15 19l-7-7 7-7"
               />
             </svg>
-            Home
+            Back
           </Link>
-          <div className="text-center">
-            <h1 className="text-4xl font-bold text-white mb-2 drop-shadow-lg">
+          <div>
+            <h1 className="text-2xl font-bold text-[var(--text-primary)] mb-1">
               UTM Builder
             </h1>
-            <p className="text-gray-300">UTM builder for everyone</p>
+            <p className="text-sm text-[var(--text-secondary)]">
+              Create UTM parameters for your marketing campaigns
+            </p>
           </div>
-        </div>
+        </header>
 
         {/* Builder Tab */}
         <BuilderTab />
 
+        {/* Guide */}
         <UTMGuide />
       </div>
     </div>

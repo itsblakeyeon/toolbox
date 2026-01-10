@@ -1,3 +1,5 @@
+import { memo } from "react";
+
 interface BuilderTableHeaderProps {
   allSelected: boolean;
   onToggleSelectAll: () => void;
@@ -20,36 +22,36 @@ function BuilderTableHeader({
   onToggleSelectAll,
 }: BuilderTableHeaderProps) {
   return (
-    <thead className="bg-white/5 backdrop-blur-sm">
-      <tr>
-        {/* Checkbox: 40px */}
-        <th className="w-10 px-3 py-2 text-center text-gray-200 text-xs font-semibold border-r border-b border-white/10">
+    <thead>
+      <tr className="bg-[var(--bg-tertiary)]">
+        {/* Checkbox */}
+        <th className="w-10 px-3 py-2.5 text-center border-b border-[var(--border-default)]">
           <input
             type="checkbox"
             onChange={onToggleSelectAll}
             checked={allSelected}
-            className="w-4 h-4 cursor-pointer accent-gray-500"
+            className="notion-checkbox"
           />
         </th>
-        {/* Row number: 40px */}
-        <th className="w-10 px-3 py-2 text-center text-gray-200 text-xs font-semibold border-r border-b border-white/10">
+        {/* Row number */}
+        <th className="w-10 px-3 py-2.5 text-center text-[var(--text-tertiary)] text-xs font-medium border-b border-[var(--border-default)]">
           #
         </th>
         {/* UTM Fields */}
         {HEADER_COLUMNS.map((col) => (
           <th
             key={col.key}
-            className={`${col.width} px-3 py-2 text-left text-gray-200 text-xs font-semibold border-r border-b border-white/10`}
+            className={`${col.width} px-3 py-2.5 text-left text-[var(--text-secondary)] text-xs font-medium uppercase tracking-wider border-b border-[var(--border-default)]`}
           >
             {col.label}
           </th>
         ))}
-        {/* Generated URL: flexible, takes remaining space */}
-        <th className="px-3 py-2 text-left text-gray-200 text-xs font-semibold border-r border-b border-white/10">
+        {/* Generated URL */}
+        <th className="px-3 py-2.5 text-left text-[var(--text-secondary)] text-xs font-medium uppercase tracking-wider border-b border-[var(--border-default)]">
           Generated URL
         </th>
-        {/* Actions: 100px */}
-        <th className="w-[100px] px-3 py-2 text-center text-gray-200 text-xs font-semibold border-b border-white/10">
+        {/* Actions */}
+        <th className="w-[88px] px-3 py-2.5 text-center text-[var(--text-secondary)] text-xs font-medium uppercase tracking-wider border-b border-[var(--border-default)]">
           Actions
         </th>
       </tr>
@@ -57,4 +59,4 @@ function BuilderTableHeader({
   );
 }
 
-export default BuilderTableHeader;
+export default memo(BuilderTableHeader);

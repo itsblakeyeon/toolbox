@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useMemo } from "react";
 import { buildUTMUrl } from "@/utils/urlBuilder";
 import { createEmptyRow } from "@/utils/rowFactory";
 import { useKeyboardNavigation } from "@/hooks/useKeyboardNavigation";
 import { useToast } from "@/hooks/useToast";
 import { useHistory } from "@/hooks/useHistory";
+import { SelectionProvider } from "@/contexts/SelectionContext";
 import BuilderTableHeader from "./BuilderTableHeader";
 import UTMTableRow from "./UTMTableRow";
 import Toast from "./Toast";
@@ -76,72 +77,84 @@ function BuilderTab({ onSave }: BuilderTabProps = {}) {
 
   const { rows, editingCell } = historyState;
 
-  const setRows = (
-    updaterOrValue: UTMRow[] | ((prev: UTMRow[]) => UTMRow[]),
-    preserveEditingCell = true
-  ) => {
-    setHistoryState((prev) => {
-      const prevRows = prev.rows;
-      const nextRows =
-        typeof updaterOrValue === "function"
-          ? updaterOrValue(prevRows)
-          : updaterOrValue;
-      return {
+  const setRows = useCallback(
+    (
+      updaterOrValue: UTMRow[] | ((prev: UTMRow[]) => UTMRow[]),
+      preserveEditingCell = true
+    ) => {
+      setHistoryState((prev) => {
+        const prevRows = prev.rows;
+        const nextRows =
+          typeof updaterOrValue === "function"
+            ? updaterOrValue(prevRows)
+            : updaterOrValue;
+        return {
+          ...prev,
+          rows: nextRows,
+          editingCell: preserveEditingCell ? prev.editingCell : null,
+        };
+      });
+    },
+    [setHistoryState]
+  );
+
+  const setEditingCell = useCallback(
+    (nextEditingCell: CellPosition | null) => {
+      setHistoryState((prev) => ({
         ...prev,
-        rows: nextRows,
-        editingCell: preserveEditingCell ? prev.editingCell : null,
-      };
-    });
-  };
+        editingCell: nextEditingCell,
+      }));
+    },
+    [setHistoryState]
+  );
 
-  const setEditingCell = (nextEditingCell: CellPosition | null) => {
-    setHistoryState((prev) => ({
-      ...prev,
-      editingCell: nextEditingCell,
-    }));
-  };
+  const deleteRow = useCallback(
+    (id: string) => {
+      if (rows.length === 1) {
+        showToast("At least 1 row is required!", "warning");
+        return;
+      }
 
-  const deleteRow = (id: string) => {
-    if (rows.length === 1) {
-      showToast("At least 1 row is required!", "warning");
-      return;
-    }
+      const index = rows.findIndex((row) => row.id === id);
+      if (index === -1) return;
 
-    const index = rows.findIndex((row) => row.id === id);
-    if (index === -1) return;
+      const rowsAfter = rows.filter((row) => row.id !== id);
 
-    const rowsAfter = rows.filter((row) => row.id !== id);
+      let targetIndex: number;
+      if (index > 0) {
+        targetIndex = index - 1;
+      } else {
+        targetIndex = 0;
+      }
 
-    let targetIndex: number;
-    if (index > 0) {
-      targetIndex = index - 1;
-    } else {
-      targetIndex = 0;
-    }
+      if (targetIndex >= rowsAfter.length) {
+        targetIndex = rowsAfter.length - 1;
+      }
 
-    if (targetIndex >= rowsAfter.length) {
-      targetIndex = rowsAfter.length - 1;
-    }
+      setHistoryState((prev) => ({
+        ...prev,
+        editingCell: { rowIndex: index, field: fields[0] },
+      }));
 
-    setHistoryState((prev) => ({
-      ...prev,
-      editingCell: { rowIndex: index, field: fields[0] },
-    }));
+      setHistoryState((prev) => ({
+        ...prev,
+        rows: rowsAfter,
+        editingCell: { rowIndex: targetIndex, field: fields[0] },
+      }));
+    },
+    [rows, fields, showToast, setHistoryState]
+  );
 
-    setHistoryState((prev) => ({
-      ...prev,
-      rows: rowsAfter,
-      editingCell: { rowIndex: targetIndex, field: fields[0] },
-    }));
-  };
-
-  const toggleSelect = (id: string) => {
-    setRows((prevRows) =>
-      prevRows.map((row) =>
-        row.id === id ? { ...row, selected: !row.selected } : row
-      )
-    );
-  };
+  const toggleSelect = useCallback(
+    (id: string) => {
+      setRows((prevRows) =>
+        prevRows.map((row) =>
+          row.id === id ? { ...row, selected: !row.selected } : row
+        )
+      );
+    },
+    [setRows]
+  );
 
   const {
     selectedCell,
@@ -156,7 +169,6 @@ function BuilderTab({ onSave }: BuilderTabProps = {}) {
     handleRowSelectionKeyDown,
     handleInputFocus,
     handleKeyDown,
-    isComposing,
     onCompositionStart,
     onCompositionEnd,
   } = useKeyboardNavigation(
@@ -167,6 +179,45 @@ function BuilderTab({ onSave }: BuilderTabProps = {}) {
     toggleSelect,
     editingCell,
     setEditingCell
+  );
+
+  const handleCellClick = useCallback(
+    (rowIndex: number, field: UTMField) => {
+      setEditingCell({ rowIndex, field });
+    },
+    [setEditingCell]
+  );
+
+  // Selection context value
+  const selectionContextValue = useMemo(
+    () => ({
+      editingCell,
+      selectedCell,
+      selectedCellRange,
+      selectedRowIndex,
+      selectedRange,
+      onInputFocus: handleInputFocus,
+      onKeyDown: handleKeyDown,
+      onCellSelectionKeyDown: handleCellSelectionKeyDown,
+      onRowSelectionKeyDown: handleRowSelectionKeyDown,
+      onCellClick: handleCellClick,
+      onCompositionStart,
+      onCompositionEnd,
+    }),
+    [
+      editingCell,
+      selectedCell,
+      selectedCellRange,
+      selectedRowIndex,
+      selectedRange,
+      handleInputFocus,
+      handleKeyDown,
+      handleCellSelectionKeyDown,
+      handleRowSelectionKeyDown,
+      handleCellClick,
+      onCompositionStart,
+      onCompositionEnd,
+    ]
   );
 
   const handleUndo = useCallback(() => {
@@ -197,41 +248,44 @@ function BuilderTab({ onSave }: BuilderTabProps = {}) {
     setSelectedRange,
   ]);
 
-  const handleCellClick = (rowIndex: number, field: UTMField) => {
-    setEditingCell({ rowIndex, field });
-  };
+  const handleChange = useCallback(
+    (id: string, field: UTMField, value: string) => {
+      let processedValue = value;
 
-  const handleChange = (id: string, field: UTMField, value: string) => {
-    let processedValue = value;
-
-    if (field === "baseUrl") {
-      // https:// 또는 http://만 남았으면 완전히 비우기
-      if (value === "https://" || value === "http://" || value === "https:/" || value === "http:/") {
-        processedValue = "";
-      } else if (
-        value &&
-        !value.startsWith("http://") &&
-        !value.startsWith("https://")
-      ) {
-        const trimmedValue = value.trim();
+      if (field === "baseUrl") {
         if (
-          trimmedValue &&
-          !trimmedValue.startsWith("http://") &&
-          !trimmedValue.startsWith("https://")
+          value === "https://" ||
+          value === "http://" ||
+          value === "https:/" ||
+          value === "http:/"
         ) {
-          processedValue = `https://${trimmedValue}`;
+          processedValue = "";
+        } else if (
+          value &&
+          !value.startsWith("http://") &&
+          !value.startsWith("https://")
+        ) {
+          const trimmedValue = value.trim();
+          if (
+            trimmedValue &&
+            !trimmedValue.startsWith("http://") &&
+            !trimmedValue.startsWith("https://")
+          ) {
+            processedValue = `https://${trimmedValue}`;
+          }
         }
       }
-    }
 
-    setRows((prevRows) =>
-      prevRows.map((row) =>
-        row.id === id ? { ...row, [field]: processedValue } : row
-      )
-    );
-  };
+      setRows((prevRows) =>
+        prevRows.map((row) =>
+          row.id === id ? { ...row, [field]: processedValue } : row
+        )
+      );
+    },
+    [setRows]
+  );
 
-  const addRow = () => {
+  const addRow = useCallback(() => {
     const newRow = createEmptyRow();
     setHistoryState((prev) => {
       const nextRows = [...prev.rows, newRow];
@@ -241,18 +295,18 @@ function BuilderTab({ onSave }: BuilderTabProps = {}) {
         editingCell: { rowIndex: nextRows.length - 1, field: fields[0] },
       };
     });
-  };
+  }, [fields, setHistoryState]);
 
-  const handleReset = () => {
+  const handleReset = useCallback(() => {
     setRows([createEmptyRow()]);
-  };
+  }, [setRows]);
 
-  const toggleSelectAll = () => {
+  const toggleSelectAll = useCallback(() => {
     const allSelected = rows.every((row) => row.selected);
     setRows((prevRows) =>
       prevRows.map((row) => ({ ...row, selected: !allSelected }))
     );
-  };
+  }, [rows, setRows]);
 
   const saveSelected = useCallback(() => {
     const selectedRows = rows.filter((row) => row.selected);
@@ -304,23 +358,29 @@ function BuilderTab({ onSave }: BuilderTabProps = {}) {
     }
   }, [rows, onSave, showToast]);
 
-  const copyUrl = (row: UTMRow) => {
-    const url = buildUTMUrl(row);
-    if (url) {
-      navigator.clipboard.writeText(url);
-      showToast("URL copied to clipboard!", "success");
-    }
-  };
+  const copyUrl = useCallback(
+    (row: UTMRow) => {
+      const url = buildUTMUrl(row);
+      if (url) {
+        navigator.clipboard.writeText(url);
+        showToast("URL copied to clipboard!", "success");
+      }
+    },
+    [showToast]
+  );
 
-  const openUrlInNewTab = (row: UTMRow) => {
-    const url = buildUTMUrl(row);
-    if (url) {
-      window.open(url, "_blank", "noopener,noreferrer");
-      showToast("Opened in new tab!", "success");
-    }
-  };
+  const openUrlInNewTab = useCallback(
+    (row: UTMRow) => {
+      const url = buildUTMUrl(row);
+      if (url) {
+        window.open(url, "_blank", "noopener,noreferrer");
+        showToast("Opened in new tab!", "success");
+      }
+    },
+    [showToast]
+  );
 
-  const deleteSelectedRows = () => {
+  const deleteSelectedRows = useCallback(() => {
     const selectedRows = rows.filter((row) => row.selected);
 
     if (selectedRows.length === 0) {
@@ -336,7 +396,7 @@ function BuilderTab({ onSave }: BuilderTabProps = {}) {
     const remainingRows = rows.filter((row) => !row.selected);
     setRows(remainingRows);
     showToast(`${selectedRows.length} row(s) deleted!`, "success");
-  };
+  }, [rows, setRows, showToast]);
 
   // Auto-save to localStorage
   useEffect(() => {
@@ -393,7 +453,6 @@ function BuilderTab({ onSave }: BuilderTabProps = {}) {
         return;
       }
 
-      // Cmd/Ctrl + A: Select all cells
       if ((e.metaKey || e.ctrlKey) && e.key === "a") {
         e.preventDefault();
         e.stopPropagation();
@@ -408,142 +467,143 @@ function BuilderTab({ onSave }: BuilderTabProps = {}) {
     };
 
     window.addEventListener("keydown", handleKeyDownGlobal, true);
-    return () => window.removeEventListener("keydown", handleKeyDownGlobal, true);
-  }, [canUndo, canRedo, handleUndo, handleRedo, saveSelected, rows.length, fields, setSelectedCellRange, setSelectedCell, setEditingCell]);
+    return () =>
+      window.removeEventListener("keydown", handleKeyDownGlobal, true);
+  }, [
+    canUndo,
+    canRedo,
+    handleUndo,
+    handleRedo,
+    saveSelected,
+    rows.length,
+    fields,
+    setSelectedCellRange,
+    setSelectedCell,
+    setEditingCell,
+  ]);
 
   const hasSelectedRows = rows.some((row) => row.selected);
   const allSelected = rows.length > 0 && rows.every((row) => row.selected);
 
   return (
-    <div className="max-w-full mx-auto p-6">
-      {/* Control buttons */}
-      <div className="mb-4 flex gap-3 items-center">
-        <button
-          onClick={handleReset}
-          className="glass-button text-gray-300 hover:text-white px-4 py-2 rounded-xl font-medium shadow-lg"
-          title="Delete all data"
-        >
-          Reset All
-        </button>
-
-        <div className="flex-1"></div>
-
-        <button
-          onClick={toggleSelectAll}
-          className="glass-button glass-button-purple text-white px-4 py-2 rounded-xl font-medium shadow-lg"
-        >
-          {allSelected ? "Deselect All" : "Select All"}
-        </button>
-
-        <div className="h-8 w-px bg-white/10"></div>
-
-        <button
-          onClick={deleteSelectedRows}
-          disabled={!hasSelectedRows}
-          className={`glass-button glass-button-red text-white px-4 py-2 rounded-xl font-medium shadow-lg ${
-            !hasSelectedRows ? "opacity-50 cursor-not-allowed" : ""
-          }`}
-          title="Delete selected rows (Delete)"
-        >
-          Delete Selected
-        </button>
-      </div>
-
-      {/* Table */}
-      <div className="overflow-x-auto rounded-2xl glass-strong shadow-2xl">
-        <table className="w-full table-fixed">
-          <BuilderTableHeader
-            allSelected={rows.length > 0 && rows.every((row) => row.selected)}
-            onToggleSelectAll={toggleSelectAll}
-          />
-          <tbody>
-            {rows.map((row, index) => (
-              <UTMTableRow
-                key={row.id}
-                row={row}
-                index={index}
-                editingCell={editingCell}
-                selectedCell={selectedCell}
-                selectedCellRange={selectedCellRange}
-                selectedRowIndex={selectedRowIndex}
-                selectedRange={selectedRange}
-                onToggleSelect={toggleSelect}
-                onChange={handleChange}
-                onInputFocus={handleInputFocus}
-                onKeyDown={handleKeyDown}
-                onCellSelectionKeyDown={handleCellSelectionKeyDown}
-                onCompositionStart={onCompositionStart}
-                onCompositionEnd={onCompositionEnd}
-                onCopyUrl={copyUrl}
-                onTestUrl={openUrlInNewTab}
-                onRowSelectionKeyDown={handleRowSelectionKeyDown}
-                onCellClick={handleCellClick}
-              />
-            ))}
-          </tbody>
-        </table>
-
-        {/* Add row button */}
-        <button
-          onClick={addRow}
-          className="w-full py-3 text-gray-300 hover:text-white hover:bg-white/5 transition-all duration-200 rounded-b-2xl flex items-center justify-center border-t border-white/10"
-          aria-label="Add row"
-        >
-          <svg
-            className="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
+    <SelectionProvider value={selectionContextValue}>
+      <div className="max-w-full mx-auto">
+        {/* Control buttons */}
+        <div className="mb-4 flex gap-2 items-center">
+          <button
+            onClick={handleReset}
+            className="notion-button"
+            title="Delete all data"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 4v16m8-8H4"
+            Reset All
+          </button>
+
+          <div className="flex-1"></div>
+
+          <button
+            onClick={toggleSelectAll}
+            className="notion-button"
+          >
+            {allSelected ? "Deselect All" : "Select All"}
+          </button>
+
+          <div className="h-5 w-px bg-[var(--border-default)]"></div>
+
+          <button
+            onClick={deleteSelectedRows}
+            disabled={!hasSelectedRows}
+            className="notion-button notion-button-danger"
+            title="Delete selected rows (Delete)"
+          >
+            Delete Selected
+          </button>
+        </div>
+
+        {/* Table */}
+        <div className="notion-table-container overflow-x-auto">
+          <table className="notion-table table-fixed">
+            <BuilderTableHeader
+              allSelected={rows.length > 0 && rows.every((row) => row.selected)}
+              onToggleSelectAll={toggleSelectAll}
             />
-          </svg>
-        </button>
+            <tbody>
+              {rows.map((row, index) => (
+                <UTMTableRow
+                  key={row.id}
+                  row={row}
+                  index={index}
+                  onToggleSelect={toggleSelect}
+                  onChange={handleChange}
+                  onCopyUrl={copyUrl}
+                  onTestUrl={openUrlInNewTab}
+                />
+              ))}
+            </tbody>
+          </table>
+
+          {/* Add row button */}
+          <button
+            onClick={addRow}
+            className="w-full py-2.5 text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] transition-all duration-150 flex items-center justify-center gap-1.5 border-t border-[var(--border-subtle)]"
+            aria-label="Add row"
+          >
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+            <span className="text-sm">New row</span>
+          </button>
+        </div>
+
+        {/* Keyboard shortcuts guide */}
+        <KeyboardShortcuts
+          shortcuts={[
+            {
+              category: "Edit",
+              items: [
+                { key: "⌘/Ctrl Z", description: "Undo" },
+                { key: "⌘/Ctrl ⇧ Z", description: "Redo" },
+                { key: "⌘/Ctrl C", description: "Copy" },
+                { key: "⌘/Ctrl V", description: "Paste" },
+              ],
+            },
+            {
+              category: "Navigation",
+              items: [
+                { key: "← → ↑ ↓", description: "Move" },
+                { key: "Tab", description: "Next" },
+                { key: "Enter", description: "Down" },
+                { key: "Esc", description: "Exit" },
+              ],
+            },
+            {
+              category: "Selection",
+              items: [
+                { key: "⌘/Ctrl A", description: "All" },
+                { key: "⇧ Arrow", description: "Range" },
+                { key: "Space", description: "Check" },
+                { key: "Del", description: "Delete" },
+              ],
+            },
+          ]}
+        />
+
+        {/* Toast notifications */}
+        {toast && (
+          <Toast message={toast.message} type={toast.type} onClose={hideToast} />
+        )}
       </div>
-
-      {/* Keyboard shortcuts guide */}
-      <KeyboardShortcuts
-        shortcuts={[
-          {
-            category: "Edit",
-            items: [
-              { key: "Cmd/Ctrl + Z", description: "Undo" },
-              { key: "Cmd/Ctrl + Shift + Z", description: "Redo" },
-              { key: "Cmd/Ctrl + C", description: "Copy" },
-              { key: "Cmd/Ctrl + V", description: "Paste" },
-            ],
-          },
-          {
-            category: "Navigation",
-            items: [
-              { key: "← → ↑ ↓", description: "Move cells" },
-              { key: "Tab", description: "Next cell" },
-              { key: "Enter", description: "Move to row below" },
-              { key: "ESC", description: "Exit edit mode" },
-            ],
-          },
-          {
-            category: "Selection & Actions",
-            items: [
-              { key: "Cmd/Ctrl + A", description: "Select all" },
-              { key: "Shift + Arrow", description: "Range selection" },
-              { key: "Space", description: "Toggle checkbox" },
-              { key: "Delete", description: "Delete selected" },
-            ],
-          },
-        ]}
-      />
-
-      {/* Toast notifications */}
-      {toast && (
-        <Toast message={toast.message} type={toast.type} onClose={hideToast} />
-      )}
-    </div>
+    </SelectionProvider>
   );
 }
 

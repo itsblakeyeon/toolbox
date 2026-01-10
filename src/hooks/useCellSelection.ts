@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { copyCells, pasteCells, deleteCells } from "./useCellClipboard";
 import type { UTMRow, UTMField, CellPosition, CellRange } from "@/types";
 
 interface UseCellSelectionReturn {
@@ -26,9 +27,7 @@ export const useCellSelection = (
   setEditingCell: (cell: CellPosition | null) => void
 ): UseCellSelectionReturn => {
   const [selectedCell, setSelectedCell] = useState<CellPosition | null>(null);
-  const [selectedCellRange, setSelectedCellRange] = useState<CellRange | null>(
-    null
-  );
+  const [selectedCellRange, setSelectedCellRange] = useState<CellRange | null>(null);
   const selectedCellRangeRef = useRef(selectedCellRange);
 
   useEffect(() => {
@@ -57,10 +56,7 @@ export const useCellSelection = (
     // Shift + Arrow: Cell range selection
     if (
       e.shiftKey &&
-      (e.key === "ArrowUp" ||
-        e.key === "ArrowDown" ||
-        e.key === "ArrowLeft" ||
-        e.key === "ArrowRight")
+      ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)
     ) {
       e.preventDefault();
       const currentRange = selectedCellRangeRef.current;
@@ -94,41 +90,13 @@ export const useCellSelection = (
     if (e.key === "Delete" || e.key === "Backspace") {
       e.preventDefault();
       const currentRange = selectedCellRangeRef.current;
-      if (currentRange) {
-        const minRow = Math.min(
-          currentRange.start.rowIndex,
-          currentRange.end.rowIndex
-        );
-        const maxRow = Math.max(
-          currentRange.start.rowIndex,
-          currentRange.end.rowIndex
-        );
-        const startFieldIndex = fields.indexOf(currentRange.start.field);
-        const endFieldIndex = fields.indexOf(currentRange.end.field);
-        const minFieldIndex = Math.min(startFieldIndex, endFieldIndex);
-        const maxFieldIndex = Math.max(startFieldIndex, endFieldIndex);
-
-        setRows((prevRows) =>
-          prevRows.map((row, idx) => {
-            if (idx >= minRow && idx <= maxRow) {
-              const updatedRow = { ...row };
-              for (let i = minFieldIndex; i <= maxFieldIndex; i++) {
-                (updatedRow as Record<string, unknown>)[fields[i]] = "";
-              }
-              return updatedRow;
-            }
-            return row;
-          })
-        );
-      } else {
-        setRows((prevRows) =>
-          prevRows.map((row, idx) =>
-            idx === rowIndex
-              ? { ...row, [field]: "" }
-              : row
-          )
-        );
-      }
+      const newRows = deleteCells({
+        rows,
+        range: currentRange,
+        singleCell: currentRange ? null : { rowIndex, field },
+        fields,
+      });
+      setRows(() => newRows);
       return;
     }
 
@@ -136,38 +104,17 @@ export const useCellSelection = (
     if ((e.metaKey || e.ctrlKey) && e.key === "c") {
       e.preventDefault();
       const currentRange = selectedCellRangeRef.current;
-      if (currentRange) {
-        const minRow = Math.min(
-          currentRange.start.rowIndex,
-          currentRange.end.rowIndex
-        );
-        const maxRow = Math.max(
-          currentRange.start.rowIndex,
-          currentRange.end.rowIndex
-        );
-        const startFieldIndex = fields.indexOf(currentRange.start.field);
-        const endFieldIndex = fields.indexOf(currentRange.end.field);
-        const minFieldIndex = Math.min(startFieldIndex, endFieldIndex);
-        const maxFieldIndex = Math.max(startFieldIndex, endFieldIndex);
-
-        const cellValues: string[] = [];
-        for (let r = minRow; r <= maxRow; r++) {
-          const rowValues: string[] = [];
-          for (let f = minFieldIndex; f <= maxFieldIndex; f++) {
-            const fieldKey = fields[f];
-            const row = rows[r];
-            rowValues.push(row[fieldKey] || "");
-          }
-          cellValues.push(rowValues.join("\t"));
-        }
-        const textToCopy = cellValues.join("\n");
-        navigator.clipboard.writeText(textToCopy);
-        showToast("Cell range copied to clipboard!", "success");
-      } else {
-        const cellValue = rows[rowIndex][field] || "";
-        navigator.clipboard.writeText(cellValue);
-        showToast("Cell value copied to clipboard!", "success");
-      }
+      const textToCopy = copyCells({
+        rows,
+        range: currentRange,
+        singleCell: currentRange ? null : { rowIndex, field },
+        fields,
+      });
+      navigator.clipboard.writeText(textToCopy);
+      showToast(
+        currentRange ? "Cell range copied to clipboard!" : "Cell value copied to clipboard!",
+        "success"
+      );
       return;
     }
 
@@ -179,68 +126,32 @@ export const useCellSelection = (
         .then((text) => {
           if (!text) return;
 
-          const lines = text.split("\n").filter((line) => line.trim());
-          if (lines.length === 0) return;
-
           const currentRange = selectedCellRangeRef.current;
-          // 시작 위치: 범위의 가장 왼쪽 위 셀
-          const startRow = currentRange
-            ? Math.min(currentRange.start.rowIndex, currentRange.end.rowIndex)
-            : rowIndex;
-          const startFieldIdx = currentRange
-            ? Math.min(
-                fields.indexOf(currentRange.start.field),
-                fields.indexOf(currentRange.end.field)
-              )
-            : fields.indexOf(field);
-          const startField = fields[startFieldIdx];
-          const startFieldIndex = startFieldIdx;
-
-          // 붙여넣을 영역의 끝 위치 계산
-          const maxColCount = Math.max(
-            ...lines.map((line) => line.split("\t").length)
-          );
-          const endRowIndex = startRow + lines.length - 1;
-          const endFieldIndex = Math.min(
-            startFieldIndex + maxColCount - 1,
-            fields.length - 1
-          );
-
-          setRows((prevRows) => {
-            const newRows = [...prevRows];
-            lines.forEach((line, lineIndex) => {
-              const values = line.split("\t");
-              const targetRowIndex = startRow + lineIndex;
-
-              if (targetRowIndex < newRows.length) {
-                values.forEach((value, colIndex) => {
-                  const targetFieldIndex = startFieldIndex + colIndex;
-                  if (targetFieldIndex < fields.length) {
-                    newRows[targetRowIndex] = {
-                      ...newRows[targetRowIndex],
-                      [fields[targetFieldIndex]]: value.trim(),
-                    };
-                  }
-                });
-              }
-            });
-            return newRows;
+          const result = pasteCells({
+            text,
+            rows,
+            startPosition: { rowIndex, field },
+            range: currentRange,
+            fields,
           });
 
-          // 붙여넣은 영역 전체를 선택 상태로 설정
-          const isMultipleCells = lines.length > 1 || maxColCount > 1;
-          if (isMultipleCells) {
-            setSelectedCellRange({
-              start: { rowIndex: startRow, field: startField },
-              end: { rowIndex: endRowIndex, field: fields[endFieldIndex] },
-            });
-            setSelectedCell({ rowIndex: startRow, field: startField });
-          } else {
-            setSelectedCell({ rowIndex: startRow, field: startField });
-            setSelectedCellRange(null);
-          }
+          if (result) {
+            setRows(() => result.newRows);
 
-          showToast("Pasted!", "success");
+            const lines = text.split("\n").filter((line) => line.trim());
+            const maxColCount = Math.max(...lines.map((line) => line.split("\t").length));
+            const isMultipleCells = lines.length > 1 || maxColCount > 1;
+
+            if (isMultipleCells) {
+              setSelectedCellRange(result.pastedRange);
+              setSelectedCell(result.pastedRange.start);
+            } else {
+              setSelectedCell(result.pastedRange.start);
+              setSelectedCellRange(null);
+            }
+
+            showToast("Pasted!", "success");
+          }
         })
         .catch(() => {
           showToast("Failed to read clipboard!", "error");
@@ -249,6 +160,31 @@ export const useCellSelection = (
     }
 
     // Arrow keys: Navigate to adjacent cells
+    handleArrowNavigation(e, rowIndex, field);
+
+    // Enter or character input: Switch to edit mode
+    if (e.key === "Enter" || (e.key.length === 1 && !e.ctrlKey && !e.metaKey)) {
+      e.preventDefault();
+
+      if (e.key.length === 1 && e.key !== "Enter") {
+        setRows((prevRows) =>
+          prevRows.map((row, idx) =>
+            idx === rowIndex ? { ...row, [field]: e.key } : row
+          )
+        );
+      }
+
+      setSelectedCell(null);
+      setSelectedCellRange(null);
+      setEditingCell({ rowIndex, field });
+    }
+  };
+
+  const handleArrowNavigation = (
+    e: React.KeyboardEvent,
+    rowIndex: number,
+    field: UTMField
+  ) => {
     const arrowKeys: Record<
       string,
       {
@@ -277,73 +213,52 @@ export const useCellSelection = (
     };
 
     const arrowConfig = arrowKeys[e.key];
-    if (arrowConfig) {
-      e.preventDefault();
-      const currentRange = selectedCellRangeRef.current;
+    if (!arrowConfig) return;
 
-      if (currentRange) {
-        const startRow = currentRange.start.rowIndex;
-        const startField = currentRange.start.field;
-        const startFieldIndex = fields.indexOf(startField);
+    e.preventDefault();
+    const currentRange = selectedCellRangeRef.current;
 
-        const newRow = startRow + arrowConfig.rowDelta;
-        const newFieldIndex = startFieldIndex + arrowConfig.fieldDelta;
+    if (currentRange) {
+      const startRow = currentRange.start.rowIndex;
+      const startField = currentRange.start.field;
+      const startFieldIndex = fields.indexOf(startField);
 
-        const canMoveRow = arrowConfig.rowBoundCheck
-          ? arrowConfig.rowBoundCheck(startRow)
-          : true;
-        const canMoveField = arrowConfig.fieldBoundCheck
-          ? arrowConfig.fieldBoundCheck(startFieldIndex)
-          : true;
+      const newRow = startRow + arrowConfig.rowDelta;
+      const newFieldIndex = startFieldIndex + arrowConfig.fieldDelta;
 
-        if (canMoveRow && canMoveField) {
-          setSelectedCell({
-            rowIndex: newRow,
-            field:
-              arrowConfig.fieldDelta !== 0 ? fields[newFieldIndex] : startField,
-          });
-          setSelectedCellRange(null);
-        }
-      } else {
-        const currentFieldIndex = fields.indexOf(field);
-        const newRow = rowIndex + arrowConfig.rowDelta;
-        const newFieldIndex = currentFieldIndex + arrowConfig.fieldDelta;
+      const canMoveRow = arrowConfig.rowBoundCheck
+        ? arrowConfig.rowBoundCheck(startRow)
+        : true;
+      const canMoveField = arrowConfig.fieldBoundCheck
+        ? arrowConfig.fieldBoundCheck(startFieldIndex)
+        : true;
 
-        const canMoveRow = arrowConfig.rowBoundCheck
-          ? arrowConfig.rowBoundCheck(rowIndex)
-          : true;
-        const canMoveField = arrowConfig.fieldBoundCheck
-          ? arrowConfig.fieldBoundCheck(currentFieldIndex)
-          : true;
-
-        if (canMoveRow && canMoveField) {
-          setSelectedCell({
-            rowIndex: newRow,
-            field: arrowConfig.fieldDelta !== 0 ? fields[newFieldIndex] : field,
-          });
-          setSelectedCellRange(null);
-        }
+      if (canMoveRow && canMoveField) {
+        setSelectedCell({
+          rowIndex: newRow,
+          field: arrowConfig.fieldDelta !== 0 ? fields[newFieldIndex] : startField,
+        });
+        setSelectedCellRange(null);
       }
-      return;
-    }
+    } else {
+      const currentFieldIndex = fields.indexOf(field);
+      const newRow = rowIndex + arrowConfig.rowDelta;
+      const newFieldIndex = currentFieldIndex + arrowConfig.fieldDelta;
 
-    // Enter or character input: Switch to edit mode
-    if (e.key === "Enter" || (e.key.length === 1 && !e.ctrlKey && !e.metaKey)) {
-      e.preventDefault();
+      const canMoveRow = arrowConfig.rowBoundCheck
+        ? arrowConfig.rowBoundCheck(rowIndex)
+        : true;
+      const canMoveField = arrowConfig.fieldBoundCheck
+        ? arrowConfig.fieldBoundCheck(currentFieldIndex)
+        : true;
 
-      if (e.key.length === 1 && e.key !== "Enter") {
-        setRows((prevRows) =>
-          prevRows.map((row, idx) =>
-            idx === rowIndex ? { ...row, [field]: e.key } : row
-          )
-        );
+      if (canMoveRow && canMoveField) {
+        setSelectedCell({
+          rowIndex: newRow,
+          field: arrowConfig.fieldDelta !== 0 ? fields[newFieldIndex] : field,
+        });
+        setSelectedCellRange(null);
       }
-
-      setSelectedCell(null);
-      setSelectedCellRange(null);
-      setEditingCell({ rowIndex, field });
-
-      return;
     }
   };
 

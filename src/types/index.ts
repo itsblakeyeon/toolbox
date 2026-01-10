@@ -1,4 +1,13 @@
-// UTM Row data structure
+// UTM field names
+export type UTMField =
+  | "baseUrl"
+  | "source"
+  | "medium"
+  | "campaign"
+  | "term"
+  | "content";
+
+// UTM Row data structure (without index signature for type safety)
 export interface UTMRow {
   id: string;
   baseUrl: string;
@@ -8,9 +17,10 @@ export interface UTMRow {
   term: string;
   content: string;
   selected: boolean;
-  // Index signature for dynamic field access
-  [key: string]: string | boolean;
 }
+
+// Helper type for accessing UTM field values
+export type UTMFieldValue<T extends UTMField> = UTMRow[T];
 
 // Saved item structure
 export interface SavedItem {
@@ -62,15 +72,6 @@ export interface HistoryState {
   rows: UTMRow[];
   editingCell: CellPosition | null;
 }
-
-// UTM field names
-export type UTMField =
-  | "baseUrl"
-  | "source"
-  | "medium"
-  | "campaign"
-  | "term"
-  | "content";
 
 // Field configuration
 export interface FieldConfig {
