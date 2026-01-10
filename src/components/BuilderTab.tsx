@@ -14,10 +14,10 @@ import { STORAGE_KEYS, DEBOUNCE_DELAY, FIELDS } from "@/constants";
 import type { UTMRow, UTMField, CellPosition, HistoryState, SavedItem } from "@/types";
 
 interface BuilderTabProps {
-  onSave: (items: SavedItem[]) => void;
+  onSave?: (items: SavedItem[]) => void;
 }
 
-function BuilderTab({ onSave }: BuilderTabProps) {
+function BuilderTab({ onSave }: BuilderTabProps = {}) {
   const fields = FIELDS;
 
   const { toast, showToast, hideToast } = useToast();
@@ -203,19 +203,24 @@ function BuilderTab({ onSave }: BuilderTabProps) {
 
   const handleChange = (id: string, field: UTMField, value: string) => {
     let processedValue = value;
-    if (
-      field === "baseUrl" &&
-      value &&
-      !value.startsWith("http://") &&
-      !value.startsWith("https://")
-    ) {
-      const trimmedValue = value.trim();
-      if (
-        trimmedValue &&
-        !trimmedValue.startsWith("http://") &&
-        !trimmedValue.startsWith("https://")
+
+    if (field === "baseUrl") {
+      // https:// 또는 http://만 남았으면 완전히 비우기
+      if (value === "https://" || value === "http://" || value === "https:/" || value === "http:/") {
+        processedValue = "";
+      } else if (
+        value &&
+        !value.startsWith("http://") &&
+        !value.startsWith("https://")
       ) {
-        processedValue = `https://${trimmedValue}`;
+        const trimmedValue = value.trim();
+        if (
+          trimmedValue &&
+          !trimmedValue.startsWith("http://") &&
+          !trimmedValue.startsWith("https://")
+        ) {
+          processedValue = `https://${trimmedValue}`;
+        }
       }
     }
 
@@ -284,7 +289,9 @@ function BuilderTab({ onSave }: BuilderTabProps) {
       return;
     }
 
-    onSave(savedItems);
+    if (onSave) {
+      onSave(savedItems);
+    }
 
     if (savedItems.length < selectedRows.length) {
       const skippedCount = selectedRows.length - savedItems.length;
@@ -383,12 +390,26 @@ function BuilderTab({ onSave }: BuilderTabProps) {
         e.preventDefault();
         e.stopPropagation();
         saveSelected();
+        return;
+      }
+
+      // Cmd/Ctrl + A: Select all cells
+      if ((e.metaKey || e.ctrlKey) && e.key === "a") {
+        e.preventDefault();
+        e.stopPropagation();
+        if (rows.length === 0) return;
+        setSelectedCellRange({
+          start: { rowIndex: 0, field: fields[0] },
+          end: { rowIndex: rows.length - 1, field: fields[fields.length - 1] },
+        });
+        setSelectedCell({ rowIndex: 0, field: fields[0] });
+        setEditingCell(null);
       }
     };
 
     window.addEventListener("keydown", handleKeyDownGlobal, true);
     return () => window.removeEventListener("keydown", handleKeyDownGlobal, true);
-  }, [canUndo, canRedo, handleUndo, handleRedo, saveSelected]);
+  }, [canUndo, canRedo, handleUndo, handleRedo, saveSelected, rows.length, fields, setSelectedCellRange, setSelectedCell, setEditingCell]);
 
   const hasSelectedRows = rows.some((row) => row.selected);
   const allSelected = rows.length > 0 && rows.every((row) => row.selected);
@@ -415,17 +436,6 @@ function BuilderTab({ onSave }: BuilderTabProps) {
         </button>
 
         <div className="h-8 w-px bg-white/10"></div>
-
-        <button
-          onClick={saveSelected}
-          disabled={!hasSelectedRows}
-          className={`glass-button text-white px-4 py-2 rounded-xl font-medium shadow-lg ${
-            !hasSelectedRows ? "opacity-50 cursor-not-allowed" : ""
-          }`}
-          title="Save selected items (⌘S)"
-        >
-          Save Selected
-        </button>
 
         <button
           onClick={deleteSelectedRows}
@@ -502,27 +512,28 @@ function BuilderTab({ onSave }: BuilderTabProps) {
           {
             category: "Edit",
             items: [
-              { key: "⌘/Ctrl + Z", description: "Undo" },
-              { key: "⌘/Ctrl + Shift + Z", description: "Redo" },
-              { key: "⌘/Ctrl + C", description: "Copy row" },
-              { key: "⌘/Ctrl + V", description: "Paste row" },
+              { key: "Cmd/Ctrl + Z", description: "Undo" },
+              { key: "Cmd/Ctrl + Shift + Z", description: "Redo" },
+              { key: "Cmd/Ctrl + C", description: "Copy" },
+              { key: "Cmd/Ctrl + V", description: "Paste" },
             ],
           },
           {
             category: "Navigation",
             items: [
               { key: "← → ↑ ↓", description: "Move cells" },
+              { key: "Tab", description: "Next cell" },
               { key: "Enter", description: "Move to row below" },
-              { key: "ESC", description: "Switch mode" },
+              { key: "ESC", description: "Exit edit mode" },
             ],
           },
           {
             category: "Selection & Actions",
             items: [
-              { key: "Shift + Arrow keys", description: "Range selection" },
+              { key: "Cmd/Ctrl + A", description: "Select all" },
+              { key: "Shift + Arrow", description: "Range selection" },
               { key: "Space", description: "Toggle checkbox" },
-              { key: "Delete", description: "Delete selected rows" },
-              { key: "⌘/Ctrl + S", description: "Save selected items" },
+              { key: "Delete", description: "Delete selected" },
             ],
           },
         ]}

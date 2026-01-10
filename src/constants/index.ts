@@ -21,10 +21,10 @@ export const FIELDS: UTMField[] = [
 
 // Field configuration (includes placeholders)
 export const FIELD_CONFIG: FieldConfig[] = [
-  { key: "baseUrl", placeholder: "https://example.com" },
+  { key: "baseUrl", placeholder: "nike.com" },
   { key: "source", placeholder: "google" },
   { key: "medium", placeholder: "cpc" },
-  { key: "campaign", placeholder: "spring_sale" },
-  { key: "term", placeholder: "running shoes" },
-  { key: "content", placeholder: "banner_ad" },
+  { key: "campaign", placeholder: "airmax" },
+  { key: "term", placeholder: "shoes" },
+  { key: "content", placeholder: "banner" },
 ];

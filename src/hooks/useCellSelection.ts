@@ -42,6 +42,18 @@ export const useCellSelection = (
   ) => {
     if (!e || !e.key) return;
 
+    // Cmd/Ctrl + A: Select all cells
+    if ((e.metaKey || e.ctrlKey) && e.key === "a") {
+      e.preventDefault();
+      if (rows.length === 0) return;
+      setSelectedCellRange({
+        start: { rowIndex: 0, field: fields[0] },
+        end: { rowIndex: rows.length - 1, field: fields[fields.length - 1] },
+      });
+      setSelectedCell({ rowIndex: 0, field: fields[0] });
+      return;
+    }
+
     // Shift + Arrow: Cell range selection
     if (
       e.shiftKey &&
@@ -171,9 +183,28 @@ export const useCellSelection = (
           if (lines.length === 0) return;
 
           const currentRange = selectedCellRangeRef.current;
-          const startRow = currentRange ? currentRange.start.rowIndex : rowIndex;
-          const startField = currentRange ? currentRange.start.field : field;
-          const startFieldIndex = fields.indexOf(startField);
+          // 시작 위치: 범위의 가장 왼쪽 위 셀
+          const startRow = currentRange
+            ? Math.min(currentRange.start.rowIndex, currentRange.end.rowIndex)
+            : rowIndex;
+          const startFieldIdx = currentRange
+            ? Math.min(
+                fields.indexOf(currentRange.start.field),
+                fields.indexOf(currentRange.end.field)
+              )
+            : fields.indexOf(field);
+          const startField = fields[startFieldIdx];
+          const startFieldIndex = startFieldIdx;
+
+          // 붙여넣을 영역의 끝 위치 계산
+          const maxColCount = Math.max(
+            ...lines.map((line) => line.split("\t").length)
+          );
+          const endRowIndex = startRow + lines.length - 1;
+          const endFieldIndex = Math.min(
+            startFieldIndex + maxColCount - 1,
+            fields.length - 1
+          );
 
           setRows((prevRows) => {
             const newRows = [...prevRows];
@@ -195,6 +226,20 @@ export const useCellSelection = (
             });
             return newRows;
           });
+
+          // 붙여넣은 영역 전체를 선택 상태로 설정
+          const isMultipleCells = lines.length > 1 || maxColCount > 1;
+          if (isMultipleCells) {
+            setSelectedCellRange({
+              start: { rowIndex: startRow, field: startField },
+              end: { rowIndex: endRowIndex, field: fields[endFieldIndex] },
+            });
+            setSelectedCell({ rowIndex: startRow, field: startField });
+          } else {
+            setSelectedCell({ rowIndex: startRow, field: startField });
+            setSelectedCellRange(null);
+          }
+
           showToast("Pasted!", "success");
         })
         .catch(() => {

@@ -64,12 +64,11 @@ function UTMTableInput({
         data-row-index={rowIndex}
         data-field={field}
         tabIndex={0}
-        className="w-full bg-transparent text-gray-200 px-2 py-1 text-sm min-h-[28px] cursor-text focus:outline-none"
+        className="w-full bg-transparent text-gray-200 px-2 py-1 text-sm min-h-[28px] cursor-text focus:outline-none whitespace-nowrap overflow-hidden text-ellipsis select-none"
       >
-        {value ||
-          (rowIndex === 0 && (
-            <span className="text-gray-500">{placeholder}</span>
-          ))}
+        {value || (rowIndex === 0 && (
+          <span className="text-gray-500">{placeholder}</span>
+        ))}
       </div>
     );
   }

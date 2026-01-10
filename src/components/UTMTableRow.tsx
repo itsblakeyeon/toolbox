@@ -76,12 +76,14 @@ function UTMTableRow({
 
   // Build border classes for range selection
   const getRangeBorderClass = () => {
-    if (isSingleRowSelected) return "outline outline-2 outline-white/20";
+    if (isSingleRowSelected) {
+      return "outline outline-2 outline-white/30 outline-offset-[-2px]";
+    }
     if (!isInRange) return "";
 
-    const classes = ["border-l-2 border-r-2 border-white/20"];
-    if (isFirstInRange) classes.push("border-t-2");
-    if (isLastInRange) classes.push("border-b-2");
+    const classes = ["outline outline-2 outline-white/30 outline-offset-[-2px]"];
+    // 범위 선택 시 중간 행들은 위아래 outline 겹침 방지
+    if (!isFirstInRange) classes.push("-mt-[2px]");
     return classes.join(" ");
   };
 
@@ -245,10 +247,10 @@ function UTMTableRow({
       >
         <div
           className={`text-sm max-w-sm overflow-x-auto whitespace-nowrap ${
-            generatedUrl ? "text-gray-200" : "text-gray-500 italic"
+            generatedUrl ? "text-gray-200" : "text-gray-500"
           }`}
         >
-          {generatedUrl || ""}
+          {generatedUrl || (index === 0 && "nike.com?utm_source=google&utm_medium=cpc&...")}
         </div>
       </td>
 

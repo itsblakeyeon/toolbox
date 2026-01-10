@@ -113,8 +113,20 @@ export const useRowSelection = (
         const maxIndex = Math.max(selectedRange.start, selectedRange.end);
         const deleteCount = maxIndex - minIndex + 1;
 
+        // If deleting all rows, clear content of first row instead
         if (rows.length - deleteCount < 1) {
-          showToast("At least 1 row is required!", "warning");
+          setRows((prevRows: UTMRow[]) => [{
+            ...prevRows[0],
+            baseUrl: "",
+            source: "",
+            medium: "",
+            campaign: "",
+            term: "",
+            content: "",
+            selected: false,
+          }]);
+          setSelectedRange(null);
+          setSelectedRowIndex(0);
           return;
         }
 
@@ -144,8 +156,10 @@ export const useRowSelection = (
           setSelectedRowIndex(null);
         }
       } else {
+        // Call onDeleteRow - it handles clearing content for last row
+        onDeleteRow(rows[rowIndex].id);
+
         if (rows.length > 1) {
-          onDeleteRow(rows[rowIndex].id);
           showToast("Row deleted!", "success");
 
           const newFocusIndex = rowIndex > 0 ? rowIndex - 1 : 0;
@@ -161,8 +175,6 @@ export const useRowSelection = (
               }
             }, 0);
           });
-        } else {
-          showToast("At least 1 row is required!", "warning");
         }
       }
     }

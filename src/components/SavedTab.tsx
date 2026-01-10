@@ -9,12 +9,14 @@ import type { SavedItem, SavedItemWithSelection } from "@/types";
 
 interface SavedTabProps {
   savedItems: SavedItem[];
+  onDeleteAll: () => void;
   onDeleteSelected: (ids: number[]) => void;
   onUpdateComment: (id: number, comment: string) => void;
 }
 
 function SavedTab({
   savedItems,
+  onDeleteAll,
   onDeleteSelected,
   onUpdateComment,
 }: SavedTabProps) {
@@ -66,13 +68,11 @@ function SavedTab({
 
   if (savedItems.length === 0) {
     return (
-      <div className="max-w-full mx-auto p-6">
-        <div className="glass-strong rounded-2xl p-12 text-center shadow-xl">
-          <p className="text-gray-200 text-lg">No saved URLs.</p>
-          <p className="text-gray-400 text-sm mt-2">
-            Select and save URLs from the Builder tab.
-          </p>
-        </div>
+      <div className="max-w-full mx-auto p-6 text-center">
+        <p className="text-gray-200 text-lg">No saved URLs.</p>
+        <p className="text-gray-400 text-sm mt-2">
+          Select and save URLs from the Builder tab.
+        </p>
       </div>
     );
   }
@@ -81,6 +81,14 @@ function SavedTab({
     <div className="max-w-full mx-auto p-6">
       {/* Control buttons */}
       <div className="mb-4 flex gap-3 items-center">
+        <button
+          onClick={onDeleteAll}
+          className="glass-button text-gray-300 hover:text-white px-4 py-2 rounded-xl font-medium shadow-lg"
+          title="Delete all saved items"
+        >
+          Reset All
+        </button>
+
         <div className="flex-1"></div>
 
         <button
