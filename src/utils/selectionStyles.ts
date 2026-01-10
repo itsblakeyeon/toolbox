@@ -51,6 +51,7 @@ interface CellSelectionState {
 
 /**
  * Calculate cell selection state
+ * Now accepts selectedRowIndex and selectedRange to prevent cell selection when row is selected
  */
 export function getCellSelectionState(
   rowIndex: number,
@@ -58,8 +59,22 @@ export function getCellSelectionState(
   selectedCell: CellPosition | null,
   selectedCellRange: CellRange | null,
   editingCell: CellPosition | null,
-  fieldConfig: FieldConfig[]
+  fieldConfig: FieldConfig[],
+  selectedRowIndex?: number | null,
+  selectedRowRange?: RowRange | null
 ): CellSelectionState {
+  // If any row selection is active (single or range), don't show any cell selection
+  const hasRowSelection = selectedRowIndex !== null && selectedRowIndex !== undefined;
+  const hasRowRangeSelection = selectedRowRange !== null && selectedRowRange !== undefined;
+
+  if (hasRowSelection || hasRowRangeSelection) {
+    return {
+      isCellSelected: false,
+      isCellInRange: false,
+      isEditing: false,
+    };
+  }
+
   const isCellSelected =
     selectedCell?.rowIndex === rowIndex && selectedCell?.field === field;
 
@@ -103,7 +118,9 @@ export function getCellBorderClass(
   selectedCell: CellPosition | null,
   selectedCellRange: CellRange | null,
   editingCell: CellPosition | null,
-  fieldConfig: FieldConfig[]
+  fieldConfig: FieldConfig[],
+  selectedRowIndex?: number | null,
+  selectedRowRange?: RowRange | null
 ): string {
   const { isCellSelected, isCellInRange, isEditing } = getCellSelectionState(
     rowIndex,
@@ -111,11 +128,13 @@ export function getCellBorderClass(
     selectedCell,
     selectedCellRange,
     editingCell,
-    fieldConfig
+    fieldConfig,
+    selectedRowIndex,
+    selectedRowRange
   );
 
-  // Base border class - always present
-  const baseBorder = "border-b border-[var(--border-subtle)]";
+  // Base border class - always present (bottom + right for column separation)
+  const baseBorder = "border-b border-r border-[var(--border-subtle)]";
 
   if (isEditing) {
     return `${baseBorder} cell-editing`;

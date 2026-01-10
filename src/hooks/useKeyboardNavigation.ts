@@ -34,6 +34,7 @@ interface UseKeyboardNavigationReturn {
   onCompositionStart: () => void;
   onCompositionEnd: () => void;
   focusCell: (rowIndex: number, field: UTMField) => void;
+  clearCellSelection: () => void;
 }
 
 /**
@@ -74,6 +75,18 @@ export const useKeyboardNavigation = (
     handleCellSelectionKeyDown,
   } = useCellSelection(rows, setRows, fields, showToast, setEditingCell);
 
+  // Callback to clear cell selection (used by row selection on delete)
+  const clearCellSelection = () => {
+    setSelectedCell(null);
+    setSelectedCellRange(null);
+  };
+
+  // Wrap onDeleteRow to always clear cell selection
+  const wrappedDeleteRow = (id: string) => {
+    clearCellSelection();
+    onDeleteRow(id);
+  };
+
   const {
     selectedRowIndex,
     selectedRange,
@@ -83,11 +96,12 @@ export const useKeyboardNavigation = (
   } = useRowSelection(
     rows,
     setRows,
-    onDeleteRow,
+    wrappedDeleteRow,
     onToggleSelect,
     showToast,
     focusCell,
-    lastFocusedField
+    lastFocusedField,
+    clearCellSelection
   );
 
   const wrappedCellSelectionKeyDown = (
@@ -117,6 +131,12 @@ export const useKeyboardNavigation = (
   };
 
   const handleInputFocus = (field: UTMField, rowIndex: number) => {
+    // If row selection is active, don't switch to cell editing mode
+    // This prevents the bug where deleting a row causes both row and cell to be selected
+    if (selectedRowIndex !== null || selectedRange !== null) {
+      return;
+    }
+
     setSelectedRowIndex(null);
     setSelectedCell(null);
     setSelectedCellRange(null);
@@ -301,5 +321,6 @@ export const useKeyboardNavigation = (
     onCompositionStart: () => setIsComposing(true),
     onCompositionEnd: () => setIsComposing(false),
     focusCell,
+    clearCellSelection,
   };
 };

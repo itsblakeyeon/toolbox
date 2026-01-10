@@ -234,6 +234,14 @@ body {
   background-color: var(--bg-tertiary);
 }
 
+.notion-table tr:focus {
+  outline: none;
+}
+
+.notion-table tr:focus-visible {
+  outline: none;
+}
+
 /* Input */
 .notion-input {
   width: 100%;

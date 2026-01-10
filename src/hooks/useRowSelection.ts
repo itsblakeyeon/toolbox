@@ -22,7 +22,8 @@ export const useRowSelection = (
   onToggleSelect: (id: string) => void,
   showToast: (message: string, type: "success" | "warning" | "error") => void,
   focusCell: (rowIndex: number, field: UTMField) => void,
-  lastFocusedField: UTMField
+  lastFocusedField: UTMField,
+  clearCellSelection: () => void
 ): UseRowSelectionReturn => {
   const [selectedRowIndex, setSelectedRowIndex] = useState<number | null>(null);
   const [selectedRange, setSelectedRange] = useState<RowRange | null>(null);
@@ -108,6 +109,9 @@ export const useRowSelection = (
     // Delete or Backspace: Delete rows
     else if (e.key === "Delete" || e.key === "Backspace") {
       e.preventDefault();
+      // Clear cell selection when deleting rows
+      clearCellSelection();
+
       if (selectedRange) {
         const minIndex = Math.min(selectedRange.start, selectedRange.end);
         const maxIndex = Math.max(selectedRange.start, selectedRange.end);
@@ -156,6 +160,9 @@ export const useRowSelection = (
           setSelectedRowIndex(null);
         }
       } else {
+        // Clear cell selection before deleting row to prevent cell selection after deletion
+        clearCellSelection();
+        
         // Call onDeleteRow - it handles clearing content for last row
         onDeleteRow(rows[rowIndex].id);
 
@@ -164,7 +171,10 @@ export const useRowSelection = (
 
           const newFocusIndex = rowIndex > 0 ? rowIndex - 1 : 0;
 
+          // Set row selection after deletion - this will prevent any cell selection
           requestAnimationFrame(() => {
+            // Ensure cell selection is cleared before setting row selection
+            clearCellSelection();
             setSelectedRowIndex(newFocusIndex);
             setTimeout(() => {
               const rowElement = document.querySelector(
@@ -175,6 +185,10 @@ export const useRowSelection = (
               }
             }, 0);
           });
+        } else {
+          // Last row was deleted, clear all selections
+          clearCellSelection();
+          setSelectedRowIndex(null);
         }
       }
     }

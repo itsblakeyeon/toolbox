@@ -57,7 +57,7 @@ function UTMTableRow({
       className={`transition-colors duration-100 hover:bg-[var(--bg-tertiary)] ${rowBorderClass}`}
     >
       {/* Checkbox */}
-      <td className="px-3 py-2 text-center border-b border-[var(--border-subtle)]">
+      <td className="px-3 py-2 text-center border-b border-r border-[var(--border-subtle)]">
         <input
           type="checkbox"
           checked={row.selected || false}
@@ -67,7 +67,7 @@ function UTMTableRow({
       </td>
 
       {/* Row number */}
-      <td className="px-3 py-2 text-center text-[var(--text-tertiary)] text-sm border-b border-[var(--border-subtle)]">
+      <td className="px-3 py-2 text-center text-[var(--text-tertiary)] text-sm border-b border-r border-[var(--border-subtle)]">
         {index + 1}
       </td>
 
@@ -79,7 +79,9 @@ function UTMTableRow({
           selectedCell,
           selectedCellRange,
           editingCell,
-          FIELD_CONFIG
+          FIELD_CONFIG,
+          selectedRowIndex,
+          selectedRange
         );
 
         const cellBorderClass = getCellBorderClass(
@@ -88,7 +90,9 @@ function UTMTableRow({
           selectedCell,
           selectedCellRange,
           editingCell,
-          FIELD_CONFIG
+          FIELD_CONFIG,
+          selectedRowIndex,
+          selectedRange
         );
 
         return (
@@ -111,7 +115,7 @@ function UTMTableRow({
       })}
 
       {/* Generated URL */}
-      <td className="px-3 py-2 border-b border-[var(--border-subtle)]">
+      <td className="px-3 py-2 border-b border-r border-[var(--border-subtle)]">
         <div
           className={`text-sm max-w-sm overflow-x-auto whitespace-nowrap scrollbar-none ${
             generatedUrl ? "text-[var(--text-primary)]" : "text-[var(--text-placeholder)]"

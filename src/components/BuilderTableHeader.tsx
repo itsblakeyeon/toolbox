@@ -25,7 +25,7 @@ function BuilderTableHeader({
     <thead>
       <tr className="bg-[var(--bg-tertiary)]">
         {/* Checkbox */}
-        <th className="w-10 px-3 py-2.5 text-center border-b border-[var(--border-default)]">
+        <th className="w-10 px-3 py-2.5 text-center border-b border-r border-[var(--border-default)]">
           <input
             type="checkbox"
             onChange={onToggleSelectAll}
@@ -34,20 +34,20 @@ function BuilderTableHeader({
           />
         </th>
         {/* Row number */}
-        <th className="w-10 px-3 py-2.5 text-center text-[var(--text-tertiary)] text-xs font-medium border-b border-[var(--border-default)]">
+        <th className="w-10 px-3 py-2.5 text-center text-[var(--text-tertiary)] text-xs font-medium border-b border-r border-[var(--border-default)]">
           #
         </th>
         {/* UTM Fields */}
         {HEADER_COLUMNS.map((col) => (
           <th
             key={col.key}
-            className={`${col.width} px-3 py-2.5 text-left text-[var(--text-secondary)] text-xs font-medium uppercase tracking-wider border-b border-[var(--border-default)]`}
+            className={`${col.width} px-3 py-2.5 text-left text-[var(--text-secondary)] text-xs font-medium uppercase tracking-wider border-b border-r border-[var(--border-default)]`}
           >
             {col.label}
           </th>
         ))}
         {/* Generated URL */}
-        <th className="px-3 py-2.5 text-left text-[var(--text-secondary)] text-xs font-medium uppercase tracking-wider border-b border-[var(--border-default)]">
+        <th className="px-3 py-2.5 text-left text-[var(--text-secondary)] text-xs font-medium uppercase tracking-wider border-b border-r border-[var(--border-default)]">
           Generated URL
         </th>
         {/* Actions */}

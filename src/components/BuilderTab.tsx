@@ -108,41 +108,41 @@ function BuilderTab({ onSave }: BuilderTabProps = {}) {
     [setHistoryState]
   );
 
-  const deleteRow = useCallback(
+  const deleteRowInternal = useCallback(
     (id: string) => {
       if (rows.length === 1) {
         showToast("At least 1 row is required!", "warning");
         return;
       }
 
-      const index = rows.findIndex((row) => row.id === id);
-      if (index === -1) return;
-
       const rowsAfter = rows.filter((row) => row.id !== id);
+      const deletedIndex = rows.findIndex((row) => row.id === id);
 
-      let targetIndex: number;
-      if (index > 0) {
-        targetIndex = index - 1;
-      } else {
-        targetIndex = 0;
-      }
+      // Only update rows, preserve editingCell if it's still valid
+      setHistoryState((prev) => {
+        // If editingCell points to the deleted row or a row after it, clear it
+        let newEditingCell = prev.editingCell;
+        if (prev.editingCell) {
+          if (prev.editingCell.rowIndex === deletedIndex) {
+            // Editing cell was in the deleted row, clear it
+            newEditingCell = null;
+          } else if (prev.editingCell.rowIndex > deletedIndex) {
+            // Editing cell was after the deleted row, adjust index
+            newEditingCell = {
+              ...prev.editingCell,
+              rowIndex: prev.editingCell.rowIndex - 1,
+            };
+          }
+        }
 
-      if (targetIndex >= rowsAfter.length) {
-        targetIndex = rowsAfter.length - 1;
-      }
-
-      setHistoryState((prev) => ({
-        ...prev,
-        editingCell: { rowIndex: index, field: fields[0] },
-      }));
-
-      setHistoryState((prev) => ({
-        ...prev,
-        rows: rowsAfter,
-        editingCell: { rowIndex: targetIndex, field: fields[0] },
-      }));
+        return {
+          ...prev,
+          rows: rowsAfter,
+          editingCell: newEditingCell,
+        };
+      });
     },
-    [rows, fields, showToast, setHistoryState]
+    [rows, showToast, setHistoryState]
   );
 
   const toggleSelect = useCallback(
@@ -171,15 +171,36 @@ function BuilderTab({ onSave }: BuilderTabProps = {}) {
     handleKeyDown,
     onCompositionStart,
     onCompositionEnd,
+    clearCellSelection,
   } = useKeyboardNavigation(
     rows,
     setRows,
     fields,
-    deleteRow,
+    deleteRowInternal,
     toggleSelect,
     editingCell,
     setEditingCell
   );
+
+  // Clear cell selection when rows change (e.g., after deletion)
+  useEffect(() => {
+    // If selectedCell points to a row that no longer exists, clear it
+    if (selectedCell && selectedCell.rowIndex >= rows.length) {
+      setSelectedCell(null);
+      setSelectedCellRange(null);
+    }
+    // If selectedCellRange points to rows that no longer exist, clear it
+    if (selectedCellRange) {
+      const maxRowIndex = Math.max(
+        selectedCellRange.start.rowIndex,
+        selectedCellRange.end.rowIndex
+      );
+      if (maxRowIndex >= rows.length) {
+        setSelectedCellRange(null);
+        setSelectedCell(null);
+      }
+    }
+  }, [rows.length, selectedCell, selectedCellRange, setSelectedCell, setSelectedCellRange]);
 
   const handleCellClick = useCallback(
     (rowIndex: number, field: UTMField) => {
