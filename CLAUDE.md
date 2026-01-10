@@ -2,6 +2,12 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## 코드 수정 규칙 (필수)
+
+1. **파일 수정 전**: 같은 이름의 `.jsx`와 `.tsx` 파일이 둘 다 있는지 확인 (Next.js는 `.tsx` 우선)
+2. **수정 후**: 반드시 `npm run build`로 타입 에러 확인
+3. **"완료" 전**: 빌드 통과 확인 후에만 완료라고 말하기
+
 ## 개발 철학
 
 **문제 해결 접근 방식:**
@@ -39,6 +45,7 @@ UTM Builder는 마케터들이 여러 개의 UTM URL을 효율적으로 생성�
 
 ### 다음 구현 예정
 
+- 🔜 **React Data Grid 마이그레이션** - 더 완벽한 스프레드시트 UX를 위해 react-data-grid 라이브러리로 전환 (MIT 라이센스, 상업용 무료)
 - 🔜 프리셋 시스템 (자주 사용하는 Source+Medium+Campaign 템플릿)
 - 🔜 URL 단축 기능 (Bitly API 연동)
 - 🔜 QR 코드 생성
@@ -156,15 +163,14 @@ src/
 
 ### 다음 구현 예정
 
-11. **프리셋 시스템** - 자주 사용하는 Source+Medium+Campaign 템플릿 저장
-12. **URL 단축** - Bitly API 연동 (API 키 설정 필요)
-13. **QR 코드 생성** - 생성된 URL의 QR 코드 생성
+11. **React Data Grid 마이그레이션** - 더 완벽한 스프레드시트 UX를 위해 react-data-grid 라이브러리로 전환 (MIT 라이센스, 상업용 무료)
+12. **프리셋 시스템** - 자주 사용하는 Source+Medium+Campaign 템플릿 저장
+13. **URL 단축** - Bitly API 연동 (API 키 설정 필요)
+14. **QR 코드 생성** - 생성된 URL의 QR 코드 생성
 
 ### 향후 고려 사항
 
-7. **프리셋 시스템** - 자주 사용하는 Source+Medium+Campaign 템플릿 저장
-8. **URL 단축** - Bitly API 연동 (API 키 설정 필요)
-9. **고급 기능** - QR 코드, 통계 대시보드, 협업 기능
+- **고급 기능** - 통계 대시보드, 협업 기능
 
 ## 개발 참고사항
 
